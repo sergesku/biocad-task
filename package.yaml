@@ -26,6 +26,8 @@ library:
   source-dirs: src
   dependencies:
     - text
+    - hasbolt
+    - hasbolt-extras
 
 executables:
   biocad-task-exe:
