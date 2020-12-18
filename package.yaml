@@ -1,0 +1,48 @@
+name:                biocad-task
+version:             0.1.0.0
+github:              "sergey2nd/biocad-task"
+license:             BSD3
+author:              "Sergey Kurgak"
+maintainer:          "kurgak.ss@gmail.com"
+copyright:           "Copyright (c) 2020 Sergey Kurgak"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/sergey2nd/biocad-task#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+
+executables:
+  biocad-task-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - biocad-task
+
+tests:
+  biocad-task-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - biocad-task
