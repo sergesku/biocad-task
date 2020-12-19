@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f31293929278123f58158bd8fe99608d1960c6dda4d41b8a1c42cce7b281938f
+-- hash: f15ace4ecae3a13ca95cef51f6ce24f906ee547b30c60f43a34b55fea54fbd4d
 
 name:           biocad-task
 version:        0.1.0.0
@@ -50,6 +50,10 @@ executable biocad-task-exe
   build-depends:
       base >=4.7 && <5
     , biocad-task
+    , data-default
+    , hasbolt
+    , hasbolt-extras
+    , text
   default-language: Haskell2010
 
 test-suite biocad-task-test

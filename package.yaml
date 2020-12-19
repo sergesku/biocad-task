@@ -38,7 +38,11 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - text
     - biocad-task
+    - hasbolt
+    - hasbolt-extras
+    - data-default
 
 tests:
   biocad-task-test:
