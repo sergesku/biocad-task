@@ -14,19 +14,18 @@ newtype Amount   = Amount {getAmount :: Float} deriving (Show, Eq)
 newtype Temp     = Temp {getTemp :: Float} deriving (Show, Eq)
 newtype Pressure = Pressure {getPressure :: Float} deriving (Show, Eq)
 
-
+instance ToValue   (Id a)     where toValue   = toValue . getId
 instance FromValue (Id a)     where fromValue = Id . fromValue
-instance FromValue (Smiles a) where fromValue = Smiles . fromValue
+instance ToValue   (Name a)   where toValue   = toValue . getName
 instance FromValue (Name a)   where fromValue = Name . fromValue
-instance FromValue Amount     where fromValue = Amount . fromValue
+instance ToValue   (Smiles a) where toValue   = toValue . getSmiles
+instance FromValue (Smiles a) where fromValue = Smiles . fromValue
+instance ToValue   Temp       where toValue   = toValue . getTemp
 instance FromValue Temp       where fromValue = Temp . fromValue
+instance ToValue   Amount     where toValue   = toValue . getAmount
+instance FromValue Amount     where fromValue = Amount . fromValue
+instance ToValue   Pressure   where toValue   = toValue . getPressure
 instance FromValue Pressure   where fromValue = Pressure . fromValue
-instance ToValue (Id a)       where toValue = toValue . getId
-instance ToValue (Smiles a)   where toValue = toValue . getSmiles
-instance ToValue (Name a)     where toValue = toValue . getName
-instance ToValue Amount       where toValue = toValue . getAmount
-instance ToValue Temp         where toValue = toValue . getTemp
-instance ToValue Pressure     where toValue = toValue . getPressure
 
 
 data Molecule = Molecule
@@ -55,11 +54,15 @@ data ACCELERATE = ACCELERATE
   } deriving (Show, Eq)
 
 data ReactionData = ReactionData
-  { rd'name     :: Reaction
-  , rd'reagents :: [Molecule]
-  , r'products  :: [(Molecule, PRODUCT_FROM)] 
-  , r'catalyst  :: Maybe (Catalyst, ACCELERATE)
-  }
+  { rdReaction  :: Reaction
+  , rdReagents  :: [Molecule]
+  , rdProducts  :: [(Molecule, PRODUCT_FROM)] 
+  , rdCatalyst  :: [(Catalyst, ACCELERATE)]
+  } deriving (Show, Eq)
+
+data Direction = ToReaction
+               | FromReaction
+               deriving (Show, Eq)
 
 makeURelationLike ''REAGENT_IN
 makeURelationLikeWith ''ACCELERATE $ drop 2
