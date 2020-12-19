@@ -1,13 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ParallelListComp #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Functions where
 
 import Types
-import Control.Monad (void)
+import Control.Monad (void, forM)
+import Control.Monad.IO.Class
 import Data.List (foldl')
 import Data.Text (Text, pack)
 import Data.Function ((&))
@@ -17,10 +19,6 @@ import Database.Bolt.Extras.Graph
 
 putReaction :: ReactionData -> BoltActionT IO ()
 putReaction = void . makeRequest @PutRequest [] . putReactionGraph
-
-getReaction :: Id Reaction -> BoltActionT IO ReactionData
-getReaction = undefined -- resp <- makeRequest @GetReguest [] . getReactionGraph
-
 
 findShortPath :: Molecule -> Molecule -> Path
 findShortPath = undefined
@@ -38,7 +36,8 @@ addRelationLike from to = addRelation from to . MergeR . toURelation
 nodeRelList :: (NodeLike n, URelationLike r) => Direction -> Text -> [(n,r)] -> [GraphPutRequest -> GraphPutRequest]
 nodeRelList dir prefix lst = [ (directed addRelationLike name "reaction" rel) . (addNodeLike name node)
                              | name <- indNames prefix
-                             | (node, rel) <- lst ]
+                             | (node, rel) <- lst
+                             ]
                             where 
                               directed f = case dir of
                                 ToReaction   -> f
@@ -48,28 +47,61 @@ putReactionGraph :: ReactionData -> GraphPutRequest
 putReactionGraph ReactionData{..} = foldl' (&) emptyGraph $ concat [reactionNode, reagentList, productList, catalystList]
   where
     reactionNode = [addNodeLike "reaction" rdReaction]
-    reagentList  = nodeRelList ToReaction "reagent" $ zip rdReagents (repeat REAGENT_IN)
-    productList  = nodeRelList FromReaction "product" rdProducts
-    catalystList = nodeRelList ToReaction "catalyst" rdCatalyst
+    reagentList  = nodeRelList ToReaction   "reagent"  $ zip rdReagents (repeat REAGENT_IN)
+    productList  = nodeRelList FromReaction "product"  rdProducts
+    catalystList = nodeRelList ToReaction   "catalyst" rdCatalyst
 
 
 getReactionGraph :: Id Reaction -> GraphGetRequest
-getReactionGraph (Id i) = emptyGraph 
-                            & addNode "reaction" reactionNode
-                            & addNode "reagent" reagentNode
-                            & addNode "product" reactionNode
-                            & addNode "reaction" productNode
-                            & addNode "catalyst" catalystNode
-                            & addRelation "reagent" "reaction" reagentRel
-                            & addRelation "reaction" "product" productRel
-                            & addRelation "catalyst" "reaction" accelerateRel
+getReactionGraph (Id i) = emptyGraph & addNode "reaction" reactionNode
   where
-    reactionNode  = defaultNodeReturn & withLabelQ ''Reaction & withBoltId i & withReturn allProps
-    reagentNode   = defaultNodeReturn & withLabelQ ''Molecule & withReturn allProps
-    productNode   = defaultNodeReturn & withLabelQ ''Molecule & withReturn allProps
-    catalystNode  = defaultNodeReturn & withLabelQ ''Catalyst & withReturn allProps
-    reagentRel    = defaultRelReturn & withLabelQ ''REAGENT_IN
-    productRel    = defaultRelReturn & withLabelQ ''PRODUCT_FROM
-    accelerateRel = defaultRelReturn & withLabelQ ''ACCELERATE
+    reactionNode = defaultNodeReturn & withLabelQ ''Reaction & withBoltId i & withReturn allProps
 
-    
+getReagentsGraph :: Id Reaction -> GraphGetRequest
+getReagentsGraph (Id i) = emptyGraph & addNode "reaction" reactionNode
+                                     & addNode "reagent" reagentNode
+                                     & addRelation "reagent" "reaction" reagentRel
+  where
+    reactionNode = defaultNodeNotReturn  & withLabelQ ''Reaction & withBoltId i
+    reagentNode  = defaultNodeReturn & withLabelQ ''Molecule & withReturn allProps
+    reagentRel   = defaultRelNotReturn & withLabelQ ''REAGENT_IN
+
+getProductsGraph :: Id Reaction -> GraphGetRequest
+getProductsGraph (Id i) = emptyGraph & addNode "reaction" reactionNode
+                                     & addNode "product" productNode
+                                     & addRelation "reaction" "product" productRel
+  where
+    reactionNode = defaultNodeNotReturn & withLabelQ ''Reaction & withBoltId i
+    productNode  = defaultNodeReturn & withLabelQ ''Molecule & withReturn allProps
+    productRel   = defaultRelReturn & withLabelQ ''PRODUCT_FROM & withReturn allProps
+
+getCatalystsGraph :: Id Reaction -> GraphGetRequest
+getCatalystsGraph (Id i) = emptyGraph & addNode "reaction" reactionNode
+                                      & addNode "catalyst" catalystNode
+                                      & addRelation "catalyst" "reaction" accelerateRel
+  where
+    reactionNode  = defaultNodeNotReturn & withLabelQ ''Reaction & withBoltId i
+    catalystNode  = defaultNodeReturn & withLabelQ ''Catalyst & withReturn allProps
+    accelerateRel = defaultRelReturn & withLabelQ ''ACCELERATE & withReturn allProps
+
+getReactionDataGraphs :: Id Reaction -> [GraphGetRequest]
+getReactionDataGraphs i = [getReagentsGraph i, getProductsGraph i, getCatalystsGraph i]
+
+getReaction :: Id Reaction -> BoltActionT IO (Maybe ReactionData)
+getReaction i = do
+  reactResp <- makeRequest @GetRequest [] $ getReactionGraph i
+  let rs :: [Reaction] = extractNode "reaction" <$> reactResp
+  case rs of
+    []           -> return Nothing
+    [rdReaction] -> do resp <- forM [getReagentsGraph i, getProductsGraph i, getCatalystsGraph i] $ makeRequest @GetRequest []
+                       let resp' = concat resp
+                           rdReagents     :: [Molecule]     = extractNode "reagent" <$> resp'
+                           productLst     :: [Molecule]     = extractNode "product" <$> resp'
+                           catalystLst    :: [Catalyst]     = extractNode "catalyst" <$> resp'
+                           productFromLst :: [PRODUCT_FROM] = extractRelation "reaction" "product"  <$> resp'
+                           accelerateLst  :: [ACCELERATE]   = extractRelation "catalyst" "reaction" <$> resp'
+                           rdProducts = zip productLst productFromLst
+                           rdCatalyst = zip catalystLst accelerateLst
+                       liftIO $ print resp'
+                       liftIO $ print ReactionData{..}
+                       return $ Just ReactionData{..}
