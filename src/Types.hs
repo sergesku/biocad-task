@@ -10,9 +10,9 @@ import Data.Text (Text)
 newtype Id a     = Id {getId :: Int} deriving (Show, Eq)
 newtype Smiles a = Smiles {getSmiles :: Text} deriving (Show, Eq)
 newtype Name a   = Name {getName :: Text} deriving (Show, Eq)
-newtype Amount   = Amount {getAmount :: Float} deriving (Show, Eq)
-newtype Temp     = Temp {getTemp :: Float} deriving (Show, Eq)
-newtype Pressure = Pressure {getPressure :: Float} deriving (Show, Eq)
+newtype Amount   = Amount {getAmount :: Double} deriving (Show, Eq)
+newtype Temp     = Temp {getTemp :: Double} deriving (Show, Eq)
+newtype Pressure = Pressure {getPressure :: Double} deriving (Show, Eq)
 
 instance ToValue   (Id a)     where toValue   = toValue . getId
 instance FromValue (Id a)     where fromValue = Id . fromValue
