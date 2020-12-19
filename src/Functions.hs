@@ -17,12 +17,11 @@ import Database.Bolt
 import Database.Bolt.Extras
 import Database.Bolt.Extras.Graph
 
-putReaction :: ReactionData -> BoltActionT IO ()
-putReaction = void . makeRequest @PutRequest [] . putReactionGraph
-
 findShortPath :: Molecule -> Molecule -> Path
 findShortPath = undefined
 
+putReaction :: ReactionData -> BoltActionT IO ()
+putReaction = void . makeRequest @PutRequest [] . putReactionGraph
 
 indNames :: NodeName -> [NodeName]
 indNames n = map ((n <>) . pack . show) [1..]
@@ -51,6 +50,30 @@ putReactionGraph ReactionData{..} = foldl' (&) emptyGraph $ concat [reactionNode
     productList  = nodeRelList FromReaction "product"  rdProducts
     catalystList = nodeRelList ToReaction   "catalyst" rdCatalyst
 
+
+getReaction :: Id Reaction -> BoltActionT IO (Maybe ReactionData)
+getReaction i = do
+  resp <- forM (getReactionDataGraphs i) $ makeRequest @GetRequest []
+  let [reactResp, reagResp, prodResp, catResp] = resp
+      rs             :: [Reaction]     = extractNode "reaction" <$> reactResp
+      rdReagents     :: [Molecule]     = extractNode "reagent"  <$> reagResp
+      productLst     :: [Molecule]     = extractNode "product"  <$> prodResp
+      catalystLst    :: [Catalyst]     = extractNode "catalyst" <$> catResp
+      productFromLst :: [PRODUCT_FROM] = extractRelation "reaction" "product"  <$> prodResp
+      accelerateLst  :: [ACCELERATE]   = extractRelation "catalyst" "reaction" <$> catResp
+      rdProducts = zip productLst productFromLst
+      rdCatalyst = zip catalystLst accelerateLst
+  case rs of
+    []           -> return Nothing
+    [rdReaction] -> do liftIO $ print ReactionData{..}
+                       return $ Just ReactionData{..}
+
+getReactionDataGraphs :: Id Reaction -> [GraphGetRequest]
+getReactionDataGraphs i = [ getReactionGraph i
+                          , getReagentsGraph i
+                          , getProductsGraph i
+                          , getCatalystsGraph i
+                          ]
 
 getReactionGraph :: Id Reaction -> GraphGetRequest
 getReactionGraph (Id i) = emptyGraph & addNode "reaction" reactionNode
@@ -83,25 +106,3 @@ getCatalystsGraph (Id i) = emptyGraph & addNode "reaction" reactionNode
     reactionNode  = defaultNodeNotReturn & withLabelQ ''Reaction & withBoltId i
     catalystNode  = defaultNodeReturn & withLabelQ ''Catalyst & withReturn allProps
     accelerateRel = defaultRelReturn & withLabelQ ''ACCELERATE & withReturn allProps
-
-getReactionDataGraphs :: Id Reaction -> [GraphGetRequest]
-getReactionDataGraphs i = [getReagentsGraph i, getProductsGraph i, getCatalystsGraph i]
-
-getReaction :: Id Reaction -> BoltActionT IO (Maybe ReactionData)
-getReaction i = do
-  reactResp <- makeRequest @GetRequest [] $ getReactionGraph i
-  let rs :: [Reaction] = extractNode "reaction" <$> reactResp
-  case rs of
-    []           -> return Nothing
-    [rdReaction] -> do resp <- forM [getReagentsGraph i, getProductsGraph i, getCatalystsGraph i] $ makeRequest @GetRequest []
-                       let resp' = concat resp
-                           rdReagents     :: [Molecule]     = extractNode "reagent" <$> resp'
-                           productLst     :: [Molecule]     = extractNode "product" <$> resp'
-                           catalystLst    :: [Catalyst]     = extractNode "catalyst" <$> resp'
-                           productFromLst :: [PRODUCT_FROM] = extractRelation "reaction" "product"  <$> resp'
-                           accelerateLst  :: [ACCELERATE]   = extractRelation "catalyst" "reaction" <$> resp'
-                           rdProducts = zip productLst productFromLst
-                           rdCatalyst = zip catalystLst accelerateLst
-                       liftIO $ print resp'
-                       liftIO $ print ReactionData{..}
-                       return $ Just ReactionData{..}
