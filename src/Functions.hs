@@ -5,7 +5,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Functions where
+module Functions
+  ( putReaction
+  , getReaction
+  , findShortPath
+  ) where
 
 import Types
 import Control.Monad (void, forM)
