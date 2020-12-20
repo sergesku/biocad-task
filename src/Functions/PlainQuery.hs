@@ -44,8 +44,6 @@ putAccelerateRel ACCELERATE{..} idc idr =
          <> "MERGE (c)-[rel:ACCELERATE {temperature : {temperature}, pressure : {pressure}}]->(r) RETURN ID(rel) AS id" )
          $ props ["idc" =: getId idc, "idr" =: getId idr, "temperature" =: getTemp a'temperature, "pressure" =: getPressure a'pressure]
 
-
-
 putReaction :: ReactionData -> BoltActionT IO ()
 putReaction ReactionData{..} = do
   let (prodNs, prodRs) = unzip rdProducts
@@ -67,16 +65,11 @@ putReaction ReactionData{..} = do
                 forM_ (zip catIds accelRs) $ \(idc, rel) -> putAccelerateRel  rel idc idr
 
 
-
-getReactionNode :: Id Reaction -> BoltActionT IO (Maybe Reaction)
-getReactionNode (Id i) = do 
-  resp <- queryP "MATCH (r:Reaction) WHERE ID(r) = {i} RETURN r" $ props ["i" =: i]
-  case resp of
-    [rec] -> (Just . fromNode) <$> rec `at` "r"
-    _     -> return Nothing
-
 getReactionNode :: Id Reaction -> BoltActionT IO [Record]
 getReactionNode (Id i) = queryP "MATCH (r:Reaction) WHERE ID(r) = {i} RETURN r" $ props ["i" =: i]
 
 getReagentNodeRel :: Id Reaction -> BoltActionT IO [Record]
 getReagentNodeRel (Id i) = queryP "MATCH (m:Molecule)-[rel:REAGENT_IN]->(r:Reaction) WHERE ID(r) = {i} RETURN m,rel" $ props ["i" =: i]
+
+getProductNodeRel :: Id Reaction -> BoltActionT IO [Record]
+getProductNodeRel (Id i) = queryP "MATCH (m:Molecule)<-[rel:PRODUCT_FROM]-(r:Reaction) WHERE ID(r) = {i} RETURN m,rel" $ props ["i" =: i]
