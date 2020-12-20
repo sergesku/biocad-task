@@ -5,7 +5,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Functions
+module Functions.Graph
   ( putReaction
   , getReaction
   , findShortPath
