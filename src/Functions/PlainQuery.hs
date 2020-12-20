@@ -73,3 +73,6 @@ getReagentNodeRel (Id i) = queryP "MATCH (m:Molecule)-[rel:REAGENT_IN]->(r:React
 
 getProductNodeRel :: Id Reaction -> BoltActionT IO [Record]
 getProductNodeRel (Id i) = queryP "MATCH (m:Molecule)<-[rel:PRODUCT_FROM]-(r:Reaction) WHERE ID(r) = {i} RETURN m,rel" $ props ["i" =: i]
+
+getCatalystNodeRel :: Id Reaction -> BoltActionT IO [Record]
+getCatalystNodeRel (Id i) = queryP "MATCH (c:Catalyst)-[rel:ACCELERATE]->(r:Reaction) WHERE ID(r) = {i} RETURN c,rel" $ props ["i" =: i]
