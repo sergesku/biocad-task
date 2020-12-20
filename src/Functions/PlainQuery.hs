@@ -10,6 +10,7 @@ import Types
 import Control.Monad
 import Data.Text hiding (zip, concat)
 import Database.Bolt
+import Database.Bolt.Extras
 
 
 putReactionNode :: Reaction -> BoltActionT IO [Record]
@@ -64,3 +65,12 @@ putReaction ReactionData{..} = do
     [idr] -> do forM_ reagIds $ \idm -> putReagentInRel idm idr
                 forM_ (zip prodIds prodRs) $ \(idm, rel) -> putProductFromRel rel idr idm
                 forM_ (zip catIds accelRs) $ \(idc, rel) -> putAccelerateRel  rel idc idr
+
+
+
+getReactionNode :: Id Reaction -> BoltActionT IO (Maybe Reaction)
+getReactionNode (Id i) = do 
+  resp <- queryP "MATCH (r:Reaction) WHERE ID(r) = {i} RETURN r" $ props ["i" =: i]
+  case resp of
+    [rec] -> (Just . fromNode) <$> rec `at` "r"
+    _     -> return Nothing
