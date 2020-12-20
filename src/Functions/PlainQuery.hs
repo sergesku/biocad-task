@@ -2,15 +2,19 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Functions.PlainQuery where
 
 import Types
 
+import Control.Applicative (liftA2)
 import Control.Monad
+import Control.Monad.IO.Class
 import Data.Text hiding (zip, concat)
 import Database.Bolt
 import Database.Bolt.Extras
+import Database.Bolt.Serialization
 
 
 putReactionNode :: Reaction -> BoltActionT IO [Record]
@@ -59,20 +63,36 @@ putReaction ReactionData{..} = do
   catIds   :: [Id Catalyst] <- forM (concat catIdResp)  $ \rec -> Id <$> rec `at` "id"
 
   case reactIds of
-    []    -> return ()
+    []    -> return )
     [idr] -> do forM_ reagIds $ \idm -> putReagentInRel idm idr
                 forM_ (zip prodIds prodRs) $ \(idm, rel) -> putProductFromRel rel idr idm
                 forM_ (zip catIds accelRs) $ \(idc, rel) -> putAccelerateRel  rel idc idr
 
-
 getReactionNode :: Id Reaction -> BoltActionT IO [Record]
-getReactionNode (Id i) = queryP "MATCH (r:Reaction) WHERE ID(r) = {i} RETURN r" $ props ["i" =: i]
+getReactionNode (Id i) = queryP "MATCH (r:Reaction) WHERE ID(r) = {i} RETURN r AS reaction" $ props ["i" =: i]
 
 getReagentNodeRel :: Id Reaction -> BoltActionT IO [Record]
-getReagentNodeRel (Id i) = queryP "MATCH (m:Molecule)-[rel:REAGENT_IN]->(r:Reaction) WHERE ID(r) = {i} RETURN m,rel" $ props ["i" =: i]
+getReagentNodeRel (Id i) = queryP "MATCH (m:Molecule)-[rel:REAGENT_IN]->(r:Reaction) WHERE ID(r) = {i} RETURN m AS molecule" $ props ["i" =: i]
 
 getProductNodeRel :: Id Reaction -> BoltActionT IO [Record]
-getProductNodeRel (Id i) = queryP "MATCH (m:Molecule)<-[rel:PRODUCT_FROM]-(r:Reaction) WHERE ID(r) = {i} RETURN m,rel" $ props ["i" =: i]
+getProductNodeRel (Id i) = queryP "MATCH (r:Reaction)-[rel:PRODUCT_FROM]->(m:Molecule) WHERE ID(r) = {i} RETURN m AS molecule, rel AS productFrom" $ props ["i" =: i]
 
 getCatalystNodeRel :: Id Reaction -> BoltActionT IO [Record]
-getCatalystNodeRel (Id i) = queryP "MATCH (c:Catalyst)-[rel:ACCELERATE]->(r:Reaction) WHERE ID(r) = {i} RETURN c,rel" $ props ["i" =: i]
+getCatalystNodeRel (Id i) = queryP "MATCH (c:Catalyst)-[rel:ACCELERATE]->(r:Reaction) WHERE ID(r) = {i} RETURN c AS catalyst, rel AS accelerate" $ props ["i" =: i]
+
+getReaction :: Id Reaction -> BoltActionT IO (Maybe ReactionData)
+getReaction i = do
+  reactResp <- getReactionNode i
+  reagResp  <- getReagentNodeRel i
+  prodResp  <- getProductNodeRel i
+  catResp   <- getCatalystNodeRel i
+  case reactResp of
+    []    -> return Nothing
+    [rec] -> do rdReaction <- fromNode <$> rec `at` "reaction"
+                rdReagents <- forM reagResp $ \rec -> fromNode <$> rec `at` "molecule"
+                rdProducts <- forM prodResp $ \rec -> liftA2 (,) (fromNode <$> rec `at` "molecule") ((fromURelation . convertRelType) <$> (rec `at` "productFrom"))
+                rdCatalyst <- forM catResp  $ \rec -> liftA2 (,) (fromNode <$> rec `at` "catalyst") ((fromURelation . convertRelType) <$> (rec `at` "accelerate"))
+                return $ Just ReactionData{..}
+
+convertRelType :: Relationship -> URelationship
+convertRelType Relationship{..} = URelationship relIdentity relType relProps
