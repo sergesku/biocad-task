@@ -74,3 +74,9 @@ getReactionNode (Id i) = do
   case resp of
     [rec] -> (Just . fromNode) <$> rec `at` "r"
     _     -> return Nothing
+
+getReactionNode :: Id Reaction -> BoltActionT IO [Record]
+getReactionNode (Id i) = queryP "MATCH (r:Reaction) WHERE ID(r) = {i} RETURN r" $ props ["i" =: i]
+
+getReagentNodeRel :: Id Reaction -> BoltActionT IO [Record]
+getReagentNodeRel (Id i) = queryP "MATCH (m:Molecule)-[rel:REAGENT_IN]->(r:Reaction) WHERE ID(r) = {i} RETURN m,rel" $ props ["i" =: i]
