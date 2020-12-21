@@ -8,11 +8,13 @@ module Functions.PlainQuery where
 
 import Types
 
+import Data.List (foldl')
 import Control.Applicative (liftA2)
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Error.Class
-import Data.Text hiding (zip, concat)
+import Data.Text (Text)
+import qualified Data.Text as T
 import Database.Bolt
 import Database.Bolt.Extras
 import Database.Bolt.Serialization
@@ -112,3 +114,24 @@ getReaction i = do
     Nothing -> pure Nothing
     Just r  -> pure $ Just $ ReactionData r rdReagents rdProducts rdCatalyst
 
+findShortPath :: Molecule -> Molecule -> BoltActionT IO [PathNode]
+findShortPath m1 m2 = do
+  let queryText = T.concat [ "MATCH p=(m1:Molecule {smiles : {smiles1}, iupacName : {iupacName1}})-[*]-(m2:Molecule {smiles : {smiles2}, iupacName : {iupacName2}})"
+                           , "RETURN p ORDER BY length(p) DESC LIMIT 1"
+                           ]
+      properties = props [ "smiles1" =: (getSmiles . m'smiles $ m1)
+                         , "smiles2" =: (getSmiles . m'smiles $ m2)
+                         , "iupacName1" =: (getName . m'iupacName $ m1)
+                         , "iupacName2" =: (getName . m'iupacName $ m2)
+                         ]
+  resp <- queryP queryText properties
+  case resp of
+    []  -> return []
+    [rec] -> do segments <- rec `at` "segments"
+                firstN :: Node   <- (head segments) `at` "start"
+                restNs :: [Node] <- forM segments $ \rec -> rec `at` "end"
+                let indexed = zip (firstN:restNs) [1..]
+                    convert (node,i) | i `mod` 2 == 1 = MoleculeNode . fromNode $ node
+                                     | otherwise      = ReactionNode . fromNode $ node
+                return $ fmap convert indexed
+                                     

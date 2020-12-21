@@ -68,9 +68,9 @@ getReaction i = do
       rdProducts = zip productLst productFromLst
       rdCatalyst = zip catalystLst accelerateLst
   case rs of
-    []           -> return Nothing
+    []           -> pure Nothing
     [rdReaction] -> do liftIO $ print ReactionData{..}
-                       return $ Just ReactionData{..}
+                       pure $ Just ReactionData{..}
 
 getReactionDataGraphs :: Id Reaction -> [GraphGetRequest]
 getReactionDataGraphs i = [ getReactionGraph i
