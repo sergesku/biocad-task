@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f15ace4ecae3a13ca95cef51f6ce24f906ee547b30c60f43a34b55fea54fbd4d
+-- hash: 4c4b2030a42c5ab3157f4bef5bb5726c2fc9c8579910f7202fe51d41740f9e99
 
 name:           biocad-task
 version:        0.1.0.0
@@ -27,7 +27,8 @@ source-repository head
 
 library
   exposed-modules:
-      Functions
+      Functions.Graph
+      Functions.PlainQuery
       Types
   other-modules:
       Paths_biocad_task
@@ -37,6 +38,7 @@ library
       base >=4.7 && <5
     , hasbolt
     , hasbolt-extras
+    , mtl
     , text
   default-language: Haskell2010
 

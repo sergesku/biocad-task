@@ -8,11 +8,13 @@ module Functions.PlainQuery where
 
 import Types
 
+import Data.List (foldl')
 import Control.Applicative (liftA2)
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Error.Class
-import Data.Text hiding (zip, concat)
+import Data.Text (Text)
+import qualified Data.Text as T
 import Database.Bolt
 import Database.Bolt.Extras
 import Database.Bolt.Serialization
@@ -112,3 +114,20 @@ getReaction i = do
     Nothing -> pure Nothing
     Just r  -> pure $ Just $ ReactionData r rdReagents rdProducts rdCatalyst
 
+
+findShortPath :: Molecule -> Molecule -> BoltActionT IO [Transformation]
+findShortPath start end = do
+  let queryText = T.concat [ "MATCH (start:Molecule {smiles : {smiles1}, iupacName : {iupacName1}})"
+                           , "MATCH (end:Molecule {smiles : {smiles2}, iupacName : {iupacName2}})"
+                           , "MATCH path=allShortestPaths((start)-[:REAGENT_IN | :PRODUCT_FROM *]->(end))"
+                           , "WHERE ALL(n in nodes(path) WHERE n:Molecule OR n:Reaction)"
+                           , "RETURN nodes(path) AS pathNodes"
+                           ]
+      properties = props [ "smiles1" =: (getSmiles . m'smiles $ start)
+                         , "smiles2" =: (getSmiles . m'smiles $ end)
+                         , "iupacName1" =: (getName . m'iupacName $ start)
+                         , "iupacName2" =: (getName . m'iupacName $ end)
+                         ]
+  records <- queryP queryText properties
+  forM records $ \rec -> do nodes :: [Node] <- rec `at` "pathNodes"
+                            return $ zipWith ($) [MoleculeNode . fromNode, ReactionNode . fromNode] nodes

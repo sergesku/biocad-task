@@ -7,6 +7,8 @@ import Database.Bolt.Extras
 import Database.Bolt.Extras.Template
 import Data.Text (Text)
 
+type Transformation = [PathNode]
+
 newtype Id a     = Id {getId :: Int} deriving (Show, Eq)
 newtype Smiles a = Smiles {getSmiles :: Text} deriving (Show, Eq)
 newtype Name a   = Name {getName :: Text} deriving (Show, Eq)
@@ -56,13 +58,17 @@ data ACCELERATE = ACCELERATE
 data ReactionData = ReactionData
   { rdReaction  :: Reaction
   , rdReagents  :: [Molecule]
-  , rdProducts  :: [(Molecule, PRODUCT_FROM)] 
+  , rdProducts  :: [(Molecule, PRODUCT_FROM)]
   , rdCatalyst  :: [(Catalyst, ACCELERATE)]
   } deriving (Show, Eq)
 
 data Direction = ToReaction
                | FromReaction
                deriving (Show, Eq)
+
+data PathNode = MoleculeNode Molecule
+              | ReactionNode Reaction
+              deriving (Show, Eq)
 
 makeURelationLike ''REAGENT_IN
 makeURelationLikeWith ''ACCELERATE $ drop 2
