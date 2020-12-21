@@ -25,6 +25,7 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+    - mtl
     - text
     - hasbolt
     - hasbolt-extras
