@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Functions.PlainQuery where
+module Functions.TextRequest where
 
 import Types
 
@@ -73,7 +73,6 @@ putReaction ReactionData{..} = transact $ do
   pure reactId
 
 
-
 getReactionNode :: Id Reaction -> BoltActionT IO (Maybe Reaction)
 getReactionNode (Id i) = do 
   resp <- queryP "MATCH (r:Reaction) WHERE ID(r) = {i} RETURN r AS reaction" $ props ["i" =: i]
@@ -113,7 +112,6 @@ getReaction i = do
   case reaction of
     Nothing -> pure Nothing
     Just r  -> pure $ Just $ ReactionData r rdReagents rdProducts rdCatalyst
-
 
 findShortPath :: Molecule -> Molecule -> BoltActionT IO [Transformation]
 findShortPath start end = do

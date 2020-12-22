@@ -4,7 +4,7 @@ module Main where
 
 import Types
 import Data.Text
-import Functions.PlainQuery
+import Functions.TextRequest
 import Control.Exception
 import Data.Default
 import Database.Bolt
