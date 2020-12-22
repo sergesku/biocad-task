@@ -1,31 +1,31 @@
-Smiles;IUPAC Name
-CC; ethane
-O=C=O; carbon dioxide
-C#N; hydrogen cyanide
-CCN(CC)CC; triethylamine
-CC(=O)O; acetic acid
-C1CCCCC1; cyclohexane
-c1ccccc1; benzene
-[OH3+]; hydronium ion
-[2H]O[2H]; deuterium oxide
-[235U]; uranium-235
+Smiles; IUPAC Name
+CC; Ethane
+O=C=O; Carbon dioxide
+C#N; Hydrogen cyanide
+CCN(CC)CC; Triethylamine
+CC(=O)O; Acetic acid
+C1CCCCC1; Cyclohexane
+c1ccccc1; Benzene
+[OH3+]; Hydronium ion
+[2H]O[2H]; Deuterium oxide
+[235U]; Uranium-235
 F/C=C/F; E-difluoroethene
 F/C=C\F; Z-difluoroethene
 N[C@@H](C)C(=O)O; L-alanine
 N[C@H](C)C(=O)O; D-alanine
-(CH4); methane
-(PH3); phosphine
-(NH3); ammonia
-(H2S); hydrogen
-(H2O); water
-(HCl); hydrochloric acid
-[S]; elemental sulfur
-[Au]; elemental gold
-[H+]; proton
-[Fe+2]; iron (II) cation
-[OH-]; hydroxyl anion
-[OH3+]; hydronium cation
-[NH4+]; ammonium cation
+(CH4); Methane
+(PH3); Phosphine
+(NH3); Ammonia
+(H2S); Hydrogen
+(H2O); Water
+(HCl); Hydrochloric acid
+[S]; Elemental sulfur
+[Au]; Elemental gold
+[H+]; Proton
+[Fe+2]; Iron (II) cation
+[OH-]; Hydroxyl anion
+[OH3+]; Hydronium cation
+[NH4+]; Ammonium cation
 CCN(CC)CC; Triethylamine
 CC(C)C(=O)O; Isobutyric acid
 C=CC(CCC)C(C(C)C)CCC; 3-propyl-4-isopropyl-1-heptene
@@ -35,7 +35,7 @@ Cn1cccc1; Methyl
 [nH]1cccc1; 1H-pyrrole
 O=c1[nH]cccc1; 2-pyridone
 Oc1ncccc1; 2-pyridinol
-CC(C)(C)C1=CC(=C(C(=C1)C(C)(C)C)[O-])C=NC2CCCCC2N=CC3=C(C(=CC(=C3)C(C)(C)C)C(C)(C)C)[O-].[Cl-].[Mn+3]; ditert-butyl-6-[[(1R,2R)-2-[(3,5-ditert-butyl-2-oxidophenyl)methylideneamino]cyclohexyl]iminomethyl]phenolate
+CC(C)(C)C1=CC(=C(C(=C1)C(C)(C)C)[O-])C=NC2CCCCC2N=CC3=C(C(=CC(=C3)C(C)(C)C)C(C)(C)C)[O-].[Cl-].[Mn+3]; Ditert-butyl-6-[[(1R,2R)-2-[(3,5-ditert-butyl-2-oxidophenyl)methylideneamino]cyclohexyl]iminomethyl]phenolate
 CC(C)(C)C1=CC(=C(C(=C1)C(C)(C)C)O)C=NC2CCCCC2N=CC3=C(C(=CC(=C3)C(C)(C)C)C(C)(C)C)O; 2,4-ditert-butyl-6-[[(1R,2R)-2-[(3,5-ditert-butyl-2-hydroxyphenyl)methylideneamino]cyclohexyl]iminomethyl]phenol
 CC(C)(C)C1CCC(CC1)C(=O)NC2CCC(CC2)CCN3CCC(CC3)C4=COC5=CC=CC=C54; N-[4-[2-[4-(1-benzofuran-3-yl)piperidin-1-yl]ethyl]cyclohexyl]-4-tert-butylcyclohexane-1-carboxamide
 CCCCCCCCC#CCCCCCCCC(=O)C1=NC2=C(O1)C=CC=N2; 1-([1,3]oxazolo[4,5-b]pyridin-2-yl)octadec-9-yn-1-one
