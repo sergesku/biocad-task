@@ -7,21 +7,32 @@
 module Functions.TextRequest where
 
 import Types
+import Functions.Utils
 
 import Data.List (foldl')
 import Control.Applicative (liftA2)
 import Control.Monad
 import Control.Monad.IO.Class
-import Control.Monad.Error.Class
 import Data.Text (Text)
 import qualified Data.Text as T
 import Database.Bolt
 import Database.Bolt.Extras
 import Database.Bolt.Serialization
 
-unpackSingleId :: [Record] -> BoltActionT IO (Id a)
-unpackSingleId (rec:_) = Id <$> rec `at` "id"
-unpackSingleId [] = throwError $ NoStructureInResponse
+
+putReaction :: ReactionData -> BoltActionT IO (Id Reaction)
+putReaction ReactionData{..} = transact $ do
+  let (prodNs, prodRs) = unzip rdProducts
+      (catNs, accelRs) = unzip rdCatalyst
+  reactId <- putReactionNode rdReaction
+  reagIds <- forM rdReagents putMoleculeNode
+  prodIds <- forM prodNs putMoleculeNode
+  catIds  <- forM catNs putCatalystNode
+  forM_ reagIds $ \idm -> putReagentInRel idm reactId
+  forM_ (zip prodIds prodRs) $ \(molId, rel) -> putProductFromRel rel reactId molId
+  forM_ (zip catIds accelRs) $ \(catId, rel) -> putAccelerateRel  rel catId reactId
+  pure reactId
+
 
 putReactionNode :: Reaction -> BoltActionT IO (Id Reaction)
 putReactionNode Reaction{..} = resp >>= unpackSingleId
@@ -59,18 +70,17 @@ putAccelerateRel ACCELERATE{..} idc idr = resp >>= unpackSingleId
                       <> "MERGE (c)-[rel:ACCELERATE {temperature : {temperature}, pressure : {pressure}}]->(r) RETURN ID(rel) AS id" )
                       $ props ["idc" =: getId idc, "idr" =: getId idr, "temperature" =: getTemp a'temperature, "pressure" =: getPressure a'pressure]
 
-putReaction :: ReactionData -> BoltActionT IO (Id Reaction)
-putReaction ReactionData{..} = transact $ do
-  let (prodNs, prodRs) = unzip rdProducts
-      (catNs, accelRs) = unzip rdCatalyst
-  reactId <- putReactionNode rdReaction
-  reagIds <- forM rdReagents putMoleculeNode
-  prodIds <- forM prodNs putMoleculeNode
-  catIds  <- forM catNs putCatalystNode
-  forM_ reagIds $ \idm -> putReagentInRel idm reactId
-  forM_ (zip prodIds prodRs) $ \(molId, rel) -> putProductFromRel rel reactId molId
-  forM_ (zip catIds accelRs) $ \(catId, rel) -> putAccelerateRel  rel catId reactId
-  pure reactId
+
+getReaction :: Id Reaction -> BoltActionT IO (Maybe ReactionData)
+getReaction i = do
+  reaction   <- getReactionNode i
+  reagents   <- getReagentNodeRel i
+  rdProducts <- getProductNodeRel i
+  rdCatalyst <- getCatalystNodeRel i
+  let rdReagents = fmap fst reagents
+  case reaction of
+    Nothing -> pure Nothing
+    Just r  -> pure $ Just $ ReactionData r rdReagents rdProducts rdCatalyst
 
 
 getReactionNode :: Id Reaction -> BoltActionT IO (Maybe Reaction)
@@ -80,15 +90,18 @@ getReactionNode (Id i) = do
     [rec] -> (Just . fromNode) <$> rec `at` "reaction"
     _     -> pure Nothing
 
+
 getReagentNodeRel :: Id Reaction -> BoltActionT IO [(Molecule,REAGENT_IN)]
 getReagentNodeRel (Id i) = do
   resp <- queryP "MATCH (m:Molecule)-[rel:REAGENT_IN]->(r:Reaction) WHERE ID(r) = {i} RETURN m AS molecule, rel as reagentIn" $ props ["i" =: i]
   forM resp $ \rec -> liftA2 (,) (fromNode <$> rec `at` "molecule") (fromRelation <$> rec `at` "reagentIn")
   
+
 getProductNodeRel :: Id Reaction -> BoltActionT IO [(Molecule, PRODUCT_FROM)]
 getProductNodeRel (Id i) = do
   resp <- queryP "MATCH (r:Reaction)-[rel:PRODUCT_FROM]->(m:Molecule) WHERE ID(r) = {i} RETURN m AS molecule, rel AS productFrom" $ props ["i" =: i]
   forM resp $ \rec -> liftA2 (,) (fromNode <$> rec `at` "molecule") (fromRelation <$> rec `at` "productFrom")
+
 
 getCatalystNodeRel :: Id Reaction -> BoltActionT IO [(Catalyst, ACCELERATE)]
 getCatalystNodeRel (Id i) = do
@@ -102,16 +115,6 @@ fromRelation = fromURelation . convertRelType
 convertRelType :: Relationship -> URelationship
 convertRelType Relationship{..} = URelationship relIdentity relType relProps
 
-getReaction :: Id Reaction -> BoltActionT IO (Maybe ReactionData)
-getReaction i = do
-  reaction   <- getReactionNode i
-  reagents   <- getReagentNodeRel i
-  rdProducts <- getProductNodeRel i
-  rdCatalyst <- getCatalystNodeRel i
-  let rdReagents = fmap fst reagents
-  case reaction of
-    Nothing -> pure Nothing
-    Just r  -> pure $ Just $ ReactionData r rdReagents rdProducts rdCatalyst
 
 findShortPath :: Molecule -> Molecule -> BoltActionT IO [Transformation]
 findShortPath start end = do

@@ -29,6 +29,7 @@ library:
     - text
     - hasbolt
     - hasbolt-extras
+    - containers
 
 executables:
   biocad-task-exe:

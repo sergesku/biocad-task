@@ -8,10 +8,11 @@
 module Functions.GraphRequest
   ( putReaction
   , getReaction
-  , findShortPath
   ) where
 
 import Types
+import Functions.Utils (indexedNames)
+
 import Control.Monad (void, forM)
 import Control.Monad.IO.Class
 import Data.List (foldl')
@@ -20,32 +21,15 @@ import Data.Function ((&))
 import Database.Bolt
 import Database.Bolt.Extras
 import Database.Bolt.Extras.Graph
+import qualified Data.Map as M (lookup) 
 
-findShortPath :: Molecule -> Molecule -> Path
-findShortPath = undefined
 
-putReaction :: ReactionData -> BoltActionT IO ()
-putReaction = void . makeRequest @PutRequest [] . putReactionGraph
+putReaction :: ReactionData -> BoltActionT IO (Id Reaction)
+putReaction rd = do graphs <- makeRequest @PutRequest [] (putReactionGraph rd)
+                    let Just i = M.lookup "reaction" (_vertices (head graphs))
+                    return $ Id i
 
-indNames :: NodeName -> [NodeName]
-indNames n = map ((n <>) . pack . show) [1..]
 
-addNodeLike :: NodeLike n => NodeName -> n -> GraphPutRequest -> GraphPutRequest
-addNodeLike name = addNode name . MergeN . toNode
-
-addRelationLike :: URelationLike r => NodeName -> NodeName -> r -> GraphPutRequest -> GraphPutRequest
-addRelationLike from to = addRelation from to . MergeR . toURelation
-
-nodeRelList :: (NodeLike n, URelationLike r) => Direction -> Text -> [(n,r)] -> [GraphPutRequest -> GraphPutRequest]
-nodeRelList dir prefix lst = [ (directed addRelationLike name "reaction" rel) . (addNodeLike name node)
-                             | name <- indNames prefix
-                             | (node, rel) <- lst
-                             ]
-                            where 
-                              directed f = case dir of
-                                ToReaction   -> f
-                                FromReaction -> flip f
-                           
 putReactionGraph :: ReactionData -> GraphPutRequest
 putReactionGraph ReactionData{..} = foldl' (&) emptyGraph $ concat [reactionNode, reagentList, productList, catalystList]
   where
@@ -53,6 +37,25 @@ putReactionGraph ReactionData{..} = foldl' (&) emptyGraph $ concat [reactionNode
     reagentList  = nodeRelList ToReaction   "reagent"  $ zip rdReagents (repeat REAGENT_IN)
     productList  = nodeRelList FromReaction "product"  rdProducts
     catalystList = nodeRelList ToReaction   "catalyst" rdCatalyst
+
+
+addNodeLike :: NodeLike n => NodeName -> n -> GraphPutRequest -> GraphPutRequest
+addNodeLike name = addNode name . MergeN . toNode
+
+
+addRelationLike :: URelationLike r => NodeName -> NodeName -> r -> GraphPutRequest -> GraphPutRequest
+addRelationLike from to = addRelation from to . MergeR . toURelation
+
+
+nodeRelList :: (NodeLike n, URelationLike r) => Direction -> Text -> [(n,r)] -> [GraphPutRequest -> GraphPutRequest]
+nodeRelList dir prefix lst = [ (directed addRelationLike name "reaction" rel) . (addNodeLike name node)
+                             | name <- indexedNames prefix
+                             | (node, rel) <- lst
+                             ]
+                            where
+                              directed f = case dir of
+                                ToReaction   -> f
+                                FromReaction -> flip f
 
 
 getReaction :: Id Reaction -> BoltActionT IO (Maybe ReactionData)
@@ -72,6 +75,7 @@ getReaction i = do
     [rdReaction] -> do liftIO $ print ReactionData{..}
                        pure $ Just ReactionData{..}
 
+
 getReactionDataGraphs :: Id Reaction -> [GraphGetRequest]
 getReactionDataGraphs i = [ getReactionGraph i
                           , getReagentsGraph i
@@ -79,10 +83,12 @@ getReactionDataGraphs i = [ getReactionGraph i
                           , getCatalystsGraph i
                           ]
 
+
 getReactionGraph :: Id Reaction -> GraphGetRequest
 getReactionGraph (Id i) = emptyGraph & addNode "reaction" reactionNode
   where
     reactionNode = defaultNodeReturn & withLabelQ ''Reaction & withBoltId i & withReturn allProps
+
 
 getReagentsGraph :: Id Reaction -> GraphGetRequest
 getReagentsGraph (Id i) = emptyGraph & addNode "reaction" reactionNode
@@ -93,6 +99,7 @@ getReagentsGraph (Id i) = emptyGraph & addNode "reaction" reactionNode
     reagentNode  = defaultNodeReturn & withLabelQ ''Molecule & withReturn allProps
     reagentRel   = defaultRelNotReturn & withLabelQ ''REAGENT_IN
 
+
 getProductsGraph :: Id Reaction -> GraphGetRequest
 getProductsGraph (Id i) = emptyGraph & addNode "reaction" reactionNode
                                      & addNode "product" productNode
@@ -101,6 +108,7 @@ getProductsGraph (Id i) = emptyGraph & addNode "reaction" reactionNode
     reactionNode = defaultNodeNotReturn & withLabelQ ''Reaction & withBoltId i
     productNode  = defaultNodeReturn & withLabelQ ''Molecule & withReturn allProps
     productRel   = defaultRelReturn & withLabelQ ''PRODUCT_FROM & withReturn allProps
+
 
 getCatalystsGraph :: Id Reaction -> GraphGetRequest
 getCatalystsGraph (Id i) = emptyGraph & addNode "reaction" reactionNode
