@@ -75,7 +75,6 @@ getReaction i = do
     [rdReaction] -> do liftIO $ print ReactionData{..}
                        pure $ Just ReactionData{..}
 
-
 getReactionDataGraphs :: Id Reaction -> [GraphGetRequest]
 getReactionDataGraphs i = [ getReactionGraph i
                           , getReagentsGraph i
