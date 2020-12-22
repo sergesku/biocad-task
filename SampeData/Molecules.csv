@@ -1,0 +1,50 @@
+Smiles;IUPAC Name
+CC; ethane
+O=C=O; carbon dioxide
+C#N; hydrogen cyanide
+CCN(CC)CC; triethylamine
+CC(=O)O; acetic acid
+C1CCCCC1; cyclohexane
+c1ccccc1; benzene
+[OH3+]; hydronium ion
+[2H]O[2H]; deuterium oxide
+[235U]; uranium-235
+F/C=C/F; E-difluoroethene
+F/C=C\F; Z-difluoroethene
+N[C@@H](C)C(=O)O; L-alanine
+N[C@H](C)C(=O)O; D-alanine
+(CH4); methane
+(PH3); phosphine
+(NH3); ammonia
+(H2S); hydrogen
+(H2O); water
+(HCl); hydrochloric acid
+[S]; elemental sulfur
+[Au]; elemental gold
+[H+]; proton
+[Fe+2]; iron (II) cation
+[OH-]; hydroxyl anion
+[OH3+]; hydronium cation
+[NH4+]; ammonium cation
+CCN(CC)CC; Triethylamine
+CC(C)C(=O)O; Isobutyric acid
+C=CC(CCC)C(C(C)C)CCC; 3-propyl-4-isopropyl-1-heptene
+n1ccccc1; Pyridine
+O=n1ccccc1; Pyridine-N-oxide
+Cn1cccc1; Methyl
+[nH]1cccc1; 1H-pyrrole
+O=c1[nH]cccc1; 2-pyridone
+Oc1ncccc1; 2-pyridinol
+CC(C)(C)C1=CC(=C(C(=C1)C(C)(C)C)[O-])C=NC2CCCCC2N=CC3=C(C(=CC(=C3)C(C)(C)C)C(C)(C)C)[O-].[Cl-].[Mn+3]; ditert-butyl-6-[[(1R,2R)-2-[(3,5-ditert-butyl-2-oxidophenyl)methylideneamino]cyclohexyl]iminomethyl]phenolate
+CC(C)(C)C1=CC(=C(C(=C1)C(C)(C)C)O)C=NC2CCCCC2N=CC3=C(C(=CC(=C3)C(C)(C)C)C(C)(C)C)O; 2,4-ditert-butyl-6-[[(1R,2R)-2-[(3,5-ditert-butyl-2-hydroxyphenyl)methylideneamino]cyclohexyl]iminomethyl]phenol
+CC(C)(C)C1CCC(CC1)C(=O)NC2CCC(CC2)CCN3CCC(CC3)C4=COC5=CC=CC=C54; N-[4-[2-[4-(1-benzofuran-3-yl)piperidin-1-yl]ethyl]cyclohexyl]-4-tert-butylcyclohexane-1-carboxamide
+CCCCCCCCC#CCCCCCCCC(=O)C1=NC2=C(O1)C=CC=N2; 1-([1,3]oxazolo[4,5-b]pyridin-2-yl)octadec-9-yn-1-one
+CCC1CN2CCC1CC2C(C3=C4C=C(C=CC4=NC=C3)OCCC(C)C)O; (R)-[(2S,4R,5S)-5-ethyl-1-azabicyclo[2.2.2]octan-2-yl]-[6-(3-methylbutoxy)quinolin-4-yl]methanol
+C1CC(CCC1NC(=O)NC23CC4CC(C2)CC(C4)C3)OCC5=CC=CC=C5; 1-(1-adamantyl)-3-(4-phenylmethoxycyclohexyl)urea
+CC1CCCN1C2CCC(C2)C3=CC=C(C=C3)N4CCC5(C4=O)CCOCC5; 2-[4-[(1S)-3-[(2S)-2-methylpyrrolidin-1-yl]cyclopentyl]phenyl]-8-oxa-2-azaspiro[4.5]decan-1-one
+CC(=CCCN1CC2C(C1)C2NC(=O)C(C3CCCC3)(C4=CC=CC=C4)O)C; (2S)-2-cyclopentyl-2-hydroxy-N-[(1R,5S)-3-(4-methylpent-3-enyl)-3-azabicyclo[3.1.0]hexan-6-yl]-2-phenylacetamide
+CN(CC1CCCCN1C(=O)CC2=CC3=C(C=C2)C(=O)CCC3)C4CCCC4; 6-[2-[(2S)-2-[[cyclopentyl(methyl)amino]methyl]piperidin-1-yl]-2-oxoethyl]-3,4-dihydro-2H-naphthalen-1-one
+CCC(=O)N1C(C(C1CO)C2=CC=C(C=C2)C3=CCCC3)CNC4CCCC4; 1-[3-(N-benzylanilino)-2-pyrrolidin-1-ylpropoxy]-2-methylpropan-2-ol
+CCC(=O)N1[COOH]([C@H]([C@H]1CO)C2=CC=C(C=C2)C3=CCCC3)CNC4CCCC4; 1-[(2S,3R,4S)-3-[4-(cyclopenten-1-yl)phenyl]-2-[(cyclopentylamino)methyl]-4-(hydroxymethyl)azetidin-1-yl]propan-1-one
+CCCOC(CCN1CCN(C(C1)C)C2=CC=CC=C2)C3=CC=C(C=C3)OC; 4-[3-(4-methoxyphenyl)-3-propoxypropyl]-2-methyl-1-phenylpiperazine
+CCN(CC=CC)CC1=CC2CC2C(=C1)OCC(CN(C)C3=CC=CC=C3)O; (2S)-1-[[4-[[[(E)-but-2-enyl]-ethylamino]methyl]-2-bicyclo[4.1.0]hepta-2,4-dienyl]oxy]-3-(N-methylanilino)propan-2-ol
