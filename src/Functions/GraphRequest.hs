@@ -15,6 +15,7 @@ import Functions.Utils (indexedNames)
 
 import Control.Monad (void, forM)
 import Control.Monad.IO.Class
+import Control.Monad.Error.Class
 import Data.List (foldl')
 import Data.Text (Text, pack)
 import Data.Function ((&))
@@ -26,8 +27,10 @@ import qualified Data.Map as M (lookup)
 
 putReaction :: ReactionData -> BoltActionT IO (Id Reaction)
 putReaction rd = do graphs <- makeRequest @PutRequest [] (putReactionGraph rd)
-                    let Just i = M.lookup "reaction" (_vertices (head graphs))
-                    return $ Id i
+                    let mbI = M.lookup "reaction" (_vertices (head graphs))
+                    case mbI of
+                      Just i  -> return $ Id i
+                      Nothing -> throwError NoStructureInResponse
 
 
 putReactionGraph :: ReactionData -> GraphPutRequest
