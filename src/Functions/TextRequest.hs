@@ -129,6 +129,9 @@ findShortPath start end = do
                          , "iupacName1" =: (getName . m'iupacName $ start)
                          , "iupacName2" =: (getName . m'iupacName $ end)
                          ]
+      toMoleculeNode, toReactionNode :: Node -> PathNode
+      toMoleculeNode = liftA2 MoleculeNode (Id . getBoltId) fromNode
+      toReactionNode = liftA2 ReactionNode (Id . getBoltId) fromNode
   records <- queryP queryText properties
   forM records $ \rec -> do nodes :: [Node] <- rec `at` "pathNodes"
-                            return $ zipWith ($) [MoleculeNode . fromNode, ReactionNode . fromNode] nodes
+                            return $ zipWith ($) (cycle [toMoleculeNode, toReactionNode]) nodes

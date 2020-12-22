@@ -13,4 +13,4 @@ indexedNames n = map ((n <>) . pack . show) [1..]
 
 unpackSingleId :: [Record] -> BoltActionT IO (Id a)
 unpackSingleId (rec:_) = Id <$> rec `at` "id"
-unpackSingleId [] = throwError $ NoStructureInResponse
+unpackSingleId [] = throwError NoStructureInResponse

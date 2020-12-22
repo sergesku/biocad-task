@@ -9,12 +9,12 @@ import Data.Text (Text)
 
 type Transformation = [PathNode]
 
-newtype Id a     = Id {getId :: Int} deriving (Show, Eq)
-newtype Smiles a = Smiles {getSmiles :: Text} deriving (Show, Eq)
-newtype Name a   = Name {getName :: Text} deriving (Show, Eq)
-newtype Amount   = Amount {getAmount :: Double} deriving (Show, Eq)
-newtype Temp     = Temp {getTemp :: Double} deriving (Show, Eq)
-newtype Pressure = Pressure {getPressure :: Double} deriving (Show, Eq)
+newtype Id a     = Id {getId :: Int} deriving (Eq, Show, Read)
+newtype Smiles a = Smiles {getSmiles :: Text} deriving (Eq, Show, Read)
+newtype Name a   = Name {getName :: Text} deriving (Eq, Show, Read)
+newtype Amount   = Amount {getAmount :: Double} deriving (Eq, Show, Read)
+newtype Temp     = Temp {getTemp :: Double} deriving (Eq, Show, Read)
+newtype Pressure = Pressure {getPressure :: Double} deriving (Eq, Show, Read)
 
 instance ToValue   (Id a)     where toValue   = toValue . getId
 instance FromValue (Id a)     where fromValue = Id . fromValue
@@ -33,42 +33,42 @@ instance FromValue Pressure   where fromValue = Pressure . fromValue
 data Molecule = Molecule
 	{ m'smiles    :: Smiles Molecule
 	, m'iupacName :: Name Molecule
-	} deriving (Show, Eq)
+	} deriving (Eq, Show, Read)
 
 data Catalyst = Catalyst
   { c'smiles :: Smiles Catalyst
   , c'name   :: Maybe (Name Catalyst)
-  } deriving (Show, Eq)
+  } deriving (Eq, Show, Read)
 
 data Reaction = Reaction
   { r'name :: Name Reaction
-  } deriving (Show, Eq)
+  } deriving (Eq, Show, Read)
 
 data PRODUCT_FROM = PRODUCT_FROM
   { p'amount :: Amount
-  } deriving (Show, Eq)
+  } deriving (Eq, Show, Read)
 
-data REAGENT_IN = REAGENT_IN deriving (Show, Eq)
+data REAGENT_IN = REAGENT_IN deriving (Eq, Show, Read)
 
 data ACCELERATE = ACCELERATE
   { a'temperature :: Temp
   , a'pressure    :: Pressure
-  } deriving (Show, Eq)
+  } deriving (Eq, Show, Read)
 
 data ReactionData = ReactionData
   { rdReaction  :: Reaction
   , rdReagents  :: [Molecule]
   , rdProducts  :: [(Molecule, PRODUCT_FROM)]
   , rdCatalyst  :: [(Catalyst, ACCELERATE)]
-  } deriving (Show, Eq)
+  } deriving (Eq, Show, Read)
 
 data Direction = ToReaction
                | FromReaction
-               deriving (Show, Eq)
+               deriving (Eq, Show, Read)
 
-data PathNode = MoleculeNode Molecule
-              | ReactionNode Reaction
-              deriving (Show, Eq)
+data PathNode = MoleculeNode (Id Molecule) Molecule
+              | ReactionNode (Id Reaction) Reaction
+              deriving (Eq, Show, Read)
 
 makeURelationLike ''REAGENT_IN
 makeURelationLikeWith ''ACCELERATE $ drop 2
