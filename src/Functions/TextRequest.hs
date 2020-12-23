@@ -10,7 +10,7 @@ module Functions.TextRequest
   ) where
 
 import Types
-import Functions.Utils
+import Functions.Utils              (unpackSingleId)
 
 import Control.Applicative          (liftA2)
 import Control.Monad                (forM, forM_)
@@ -125,30 +125,28 @@ getCatalystNodeRel (Id i) = do
 
 
 findShortPath :: Molecule -> Molecule -> BoltActionT IO [Transformation]
-findShortPath start end = do
-  let queryText = T.concat [ "MATCH (start:Molecule {smiles : {smiles1}, iupacName : {iupacName1}})"
-                           , "MATCH (end:Molecule {smiles : {smiles2}, iupacName : {iupacName2}})"
-                           , "MATCH path=allShortestPaths((start)-[:REAGENT_IN | :PRODUCT_FROM *]->(end))"
-                           , "WHERE ALL(n in nodes(path) WHERE n:Molecule OR n:Reaction)"
-                           , "RETURN nodes(path) AS pathNodes"
-                           ]
-      properties = props [ "smiles1" =: (getSmiles . m'smiles $ start)
-                         , "smiles2" =: (getSmiles . m'smiles $ end)
-                         , "iupacName1" =: (getName . m'iupacName $ start)
-                         , "iupacName2" =: (getName . m'iupacName $ end)
+findShortPath start end = queryP queryText properties >>= mapM (`at` "pathNodes")
+  where
+    queryText = T.concat [ "MATCH (start:Molecule {smiles : {smiles1}, iupacName : {iupacName1}})"
+                         , "MATCH (end:Molecule {smiles : {smiles2}, iupacName : {iupacName2}})"
+                         , "MATCH path=allShortestPaths((start)-[:REAGENT_IN | :PRODUCT_FROM *]->(end))"
+                         , "WHERE ALL(n in nodes(path) WHERE n:Molecule OR n:Reaction)"
+                         , "RETURN nodes(path) AS pathNodes"
                          ]
-  records <- queryP queryText properties
-  forM records extractTransformation
+    properties = props [ "smiles1" =: (getSmiles . m'smiles $ start)
+                       , "smiles2" =: (getSmiles . m'smiles $ end)
+                       , "iupacName1" =: (getName . m'iupacName $ start)
+                       , "iupacName2" =: (getName . m'iupacName $ end)
+                       ]
 
 
 findShortPathById :: Id Molecule -> Id Molecule -> BoltActionT IO [Transformation]
-findShortPathById startId endId = do
-  let queryText = T.concat [ "MATCH (start:Molecule) WHERE id(start) = {startId}"
-                           , "MATCH (end:Molecule) WHERE id(end) = {endId}"
-                           , "MATCH path=allShortestPaths((start)-[:REAGENT_IN | :PRODUCT_FROM *]->(end))"
-                           , "WHERE ALL(n in nodes(path) WHERE n:Molecule OR n:Reaction)"
-                           , "RETURN nodes(path) AS pathNodes"
-                           ]
-      properties = props [ "startId" =: getId startId, "endId" =: getId endId]
-  records <- queryP queryText properties
-  forM records extractTransformation
+findShortPathById startId endId = queryP queryText properties >>= mapM (`at` "pathNodes")
+  where 
+    properties = props [ "startId" =: getId startId, "endId" =: getId endId]
+    queryText  = T.concat [ "MATCH (start:Molecule) WHERE id(start) = {startId}"
+                          , "MATCH (end:Molecule) WHERE id(end) = {endId}"
+                          , "MATCH path=allShortestPaths((start)-[:REAGENT_IN | :PRODUCT_FROM *]->(end))"
+                          , "WHERE ALL(n in nodes(path) WHERE n:Molecule OR n:Reaction)"
+                          , "RETURN nodes(path) AS pathNodes"
+                          ]

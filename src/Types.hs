@@ -4,7 +4,7 @@
 module Types where
 
 import Data.Text                      (Text)
-import Database.Bolt                  (RecordValue, exactEither)
+import Database.Bolt            
 import Database.Bolt.Extras
 import Database.Bolt.Extras.Template
 
@@ -58,9 +58,20 @@ data PathNode = MoleculeNode (Id Molecule) Molecule
               deriving (Eq, Show, Read)
 
 
+instance NodeLike PathNode where
+  fromNode node | "Molecule" `elem` labels = MoleculeNode (Id idNode) (fromNode node)
+                | "Reaction" `elem`labels  = ReactionNode (Id idNode) (fromNode node)
+                | otherwise = error $ "Could not unpack PathNode from " ++ show node
+                where labels = getLabels node
+                      idNode = getBoltId node
+  toNode (MoleculeNode (Id i) m) = Node i ["Molecule"] (getProps $ toNode m)
+  toNode (ReactionNode (Id i) r) =  Node i ["Reaction"] (getProps $ toNode r)
+
+
 instance RecordValue Reaction where exactEither = fmap fromNode . exactEither
 instance RecordValue Molecule where exactEither = fmap fromNode . exactEither
 instance RecordValue Catalyst where exactEither = fmap fromNode . exactEither
+instance RecordValue PathNode where exactEither = fmap fromNode . exactEither
 
 instance RecordValue REAGENT_IN   where exactEither = fmap fromURelation . exactEither
 instance RecordValue PRODUCT_FROM where exactEither = fmap fromURelation . exactEither
