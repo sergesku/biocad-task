@@ -9,11 +9,14 @@ c1ccccc1; Benzene
 [OH3+]; Hydronium ion
 [2H]O[2H]; Deuterium oxide
 [235U]; Uranium-235
-F/C=C/F; E-difluoroethene
+F/C=C/F; (E)-1,2-difluoroethene
 F/C=C\F; Z-difluoroethene
 N[C@@H](C)C(=O)O; L-alanine
 N[C@H](C)C(=O)O; D-alanine
-(CH4); Methane
+(Cr2O3); Chromium(III) oxide
+(NO2); Nitrogen dioxide
+(Al2O3); Aluminium oxide
+(CrO3); Chromium trioxide
 (PH3); Phosphine
 (NH3); Ammonia
 (H2S); Hydrogen
@@ -27,7 +30,7 @@ N[C@H](C)C(=O)O; D-alanine
 [OH3+]; Hydronium cation
 [NH4+]; Ammonium cation
 CCN(CC)CC; Triethylamine
-CC(C)C(=O)O; Isobutyric acid
+CC(C)C(=O)O; 2-Methylpropanoic acid
 C=CC(CCC)C(C(C)C)CCC; 3-propyl-4-isopropyl-1-heptene
 n1ccccc1; Pyridine
 O=n1ccccc1; Pyridine-N-oxide
@@ -35,6 +38,15 @@ Cn1cccc1; Methyl
 [nH]1cccc1; 1H-pyrrole
 O=c1[nH]cccc1; 2-pyridone
 Oc1ncccc1; 2-pyridinol
+NCCCCCCN; HEXANE-1,6-DIAMINE
+NCCc1ccccc1; 2-phenylethanamine
+NCCc1cc(OC)c(OC)c(OC)c1; 2-(3,4,5-trimethoxyphenyl)ethanamine
+OC(=O)c1c(OC(=O)C)cccc1; 2-acetyloxybenzoic acid
+[N+](=O)([O-])C1=C(C)C(=CC(=C1)[N+](=O)[O-])[N+](=O)[O-]; 2,4,6-trinitrotoluene
+O=C1c3c(O/C(=C1/O)c2ccc(O)c(O)c2)cc(O)cc3O; 2-(3,4-dihydroxyphenyl)-3,5,7-trihydroxychromen-4-one
+CCCCC(C)CC; 3-Methylheptane
+CC(=O)Oc1ccccc1C(O)=O; Aspirin
+CCO[S](=O)(=O)OCC; Diethylsulfate
 CC(C)(C)C1=CC(=C(C(=C1)C(C)(C)C)[O-])C=NC2CCCCC2N=CC3=C(C(=CC(=C3)C(C)(C)C)C(C)(C)C)[O-].[Cl-].[Mn+3]; Ditert-butyl-6-[[(1R,2R)-2-[(3,5-ditert-butyl-2-oxidophenyl)methylideneamino]cyclohexyl]iminomethyl]phenolate
 CC(C)(C)C1=CC(=C(C(=C1)C(C)(C)C)O)C=NC2CCCCC2N=CC3=C(C(=CC(=C3)C(C)(C)C)C(C)(C)C)O; 2,4-ditert-butyl-6-[[(1R,2R)-2-[(3,5-ditert-butyl-2-hydroxyphenyl)methylideneamino]cyclohexyl]iminomethyl]phenol
 CC(C)(C)C1CCC(CC1)C(=O)NC2CCC(CC2)CCN3CCC(CC3)C4=COC5=CC=CC=C54; N-[4-[2-[4-(1-benzofuran-3-yl)piperidin-1-yl]ethyl]cyclohexyl]-4-tert-butylcyclohexane-1-carboxamide

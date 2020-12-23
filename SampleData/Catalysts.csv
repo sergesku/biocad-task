@@ -3,11 +3,35 @@ Smiles, Name
 (Fe); Iron
 (V2O5); Vanadium(V) Oxyde
 (Pt); Platinum
-(Pd); Palladium 
+(Pd); Palladium
+(H2O); Water
+(Cu); Cuprum
 [AlSi4O10-]
-(MNO2)
-(ZnO)
-(Ni)
-(Cr2O3)
+(MNO2); Manganese dioxide
+(ZnO); Zink Oxyde
+(Ni); Nickel
+(Cr2O3); Chromium(III) oxide
+(NO2); Nitrogen dioxide
+(Al2O3); Aluminium oxide
+(CrO3); Chromium trioxide
+(CuO); Cupric oxide
+(SiO2); Silicon dioxide
+(H2SO4); Sulfuric acid
+(PbO); Lead dioxide
+(CaCO3); Calcium carbonate
+(CaO); Calcium oxide 
+(BaO); Barium oxide
+(MgO); Magnesium oxide
+(TiO2); Titanium dioxide
+(ThO2); Thorium dioxide
+(CH4); Methane
+(PH3); Phosphine
+(NH3); Ammonia
+(H2S); Hydrogen
+(HCl); Hydrochloric acid
+[S]; Elemental sulfur
+[Au]; Elemental gold
 [Rh(CO)2I2−]
 [(RC5H5)2ZrCl2]
+[Rh(CO)2I2-]
+(RC5H5)2ZrCl2
