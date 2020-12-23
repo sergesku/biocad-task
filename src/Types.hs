@@ -4,6 +4,7 @@
 module Types where
 
 import Data.Text                      (Text)
+import Database.Bolt                  (RecordValue, exactEither)
 import Database.Bolt.Extras
 import Database.Bolt.Extras.Template
 
@@ -55,6 +56,16 @@ data Direction = ToReaction
 data PathNode = MoleculeNode (Id Molecule) Molecule
               | ReactionNode (Id Reaction) Reaction
               deriving (Eq, Show, Read)
+
+
+instance RecordValue Reaction where exactEither = fmap fromNode . exactEither
+instance RecordValue Molecule where exactEither = fmap fromNode . exactEither
+instance RecordValue Catalyst where exactEither = fmap fromNode . exactEither
+
+instance RecordValue REAGENT_IN   where exactEither = fmap fromURelation . exactEither
+instance RecordValue PRODUCT_FROM where exactEither = fmap fromURelation . exactEither
+instance RecordValue ACCELERATE   where exactEither = fmap fromURelation . exactEither
+
 
 makeURelationLike ''REAGENT_IN
 makeURelationLikeWith ''ACCELERATE $ drop 2

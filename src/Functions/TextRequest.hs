@@ -102,26 +102,26 @@ getReactionNode :: Id Reaction -> BoltActionT IO (Maybe Reaction)
 getReactionNode (Id i) = do 
   resp <- queryP "MATCH (r:Reaction) WHERE ID(r) = {i} RETURN r AS reaction" $ props ["i" =: i]
   case resp of
-    [rec] -> (Just . fromNode) <$> rec `at` "reaction"
+    [rec] -> Just <$> rec `at` "reaction"
     _     -> pure Nothing
 
 
 getReagentNodeRel :: Id Reaction -> BoltActionT IO [(Molecule,REAGENT_IN)]
 getReagentNodeRel (Id i) = do
   resp <- queryP "MATCH (m:Molecule)-[rel:REAGENT_IN]->(r:Reaction) WHERE ID(r) = {i} RETURN m AS molecule, rel as reagentIn" $ props ["i" =: i]
-  forM resp $ \rec -> liftA2 (,) (fromNode <$> rec `at` "molecule") (fromRelation <$> rec `at` "reagentIn")
+  forM resp $ \rec -> liftA2 (,) (rec `at` "molecule") (rec `at` "reagentIn")
   
 
 getProductNodeRel :: Id Reaction -> BoltActionT IO [(Molecule, PRODUCT_FROM)]
 getProductNodeRel (Id i) = do
   resp <- queryP "MATCH (r:Reaction)-[rel:PRODUCT_FROM]->(m:Molecule) WHERE ID(r) = {i} RETURN m AS molecule, rel AS productFrom" $ props ["i" =: i]
-  forM resp $ \rec -> liftA2 (,) (fromNode <$> rec `at` "molecule") (fromRelation <$> rec `at` "productFrom")
+  forM resp $ \rec -> liftA2 (,) (rec `at` "molecule") (rec `at` "productFrom")
 
 
 getCatalystNodeRel :: Id Reaction -> BoltActionT IO [(Catalyst, ACCELERATE)]
 getCatalystNodeRel (Id i) = do
   resp <- queryP "MATCH (c:Catalyst)-[rel:ACCELERATE]->(r:Reaction) WHERE ID(r) = {i} RETURN c AS catalyst, rel AS accelerate" $ props ["i" =: i]
-  forM resp  $ \rec -> liftA2 (,) (fromNode <$> rec `at` "catalyst") (fromRelation <$> rec `at` "accelerate")
+  forM resp  $ \rec -> liftA2 (,) (rec `at` "catalyst") (rec `at` "accelerate")
 
 
 findShortPath :: Molecule -> Molecule -> BoltActionT IO [Transformation]
