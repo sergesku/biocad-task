@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Functions.Utils 
   ( indexedNames
@@ -39,5 +40,5 @@ toReactionNode = liftA2 ReactionNode (Id . getBoltId) fromNode
 
 extractTransformation :: Record -> BoltActionT IO Transformation
 extractTransformation record = do
-  nodes :: [Node] <- rec `at` "pathNodes"
+  nodes :: [Node] <- record `at` "pathNodes"
   return $ zipWith ($) (cycle [toMoleculeNode, toReactionNode]) nodes
