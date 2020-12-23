@@ -39,6 +39,7 @@ putReactionNode Reaction{..} = resp >>= unpackSingleId
   where resp = queryP "MERGE (r:Reaction {name : {name}}) RETURN ID(r) AS id"
                       $ props ["name" =: getName r'name]
 
+
 putMoleculeNode :: Molecule -> BoltActionT IO (Id Molecule)
 putMoleculeNode Molecule{..} = resp >>= unpackSingleId
   where resp = queryP "MERGE (m:Molecule {smiles : {smiles}, iupacName : {iupacName}}) RETURN ID(m) AS id"
@@ -52,17 +53,20 @@ putCatalystNode Catalyst{..} = resp >>= unpackSingleId
                             Nothing -> ("", [])
                             Just x  -> (", name : {name}", ["name" =: getName x])
 
+
 putReagentInRel :: Id Molecule -> Id Reaction -> BoltActionT IO (Id REAGENT_IN)
 putReagentInRel idm idr = resp >>= unpackSingleId
   where resp = queryP ( "MATCH (m:Molecule),(r:Reaction) WHERE ID(m) = {idm} AND ID(r) = {idr}" 
                       <> "MERGE (m)-[rel:REAGENT_IN]->(r) RETURN ID(rel) AS id" )
                       $ props ["idm" =: getId idm, "idr" =: getId idr]
-  
+
+
 putProductFromRel :: PRODUCT_FROM -> Id Reaction -> Id Molecule -> BoltActionT IO (Id PRODUCT_FROM)
 putProductFromRel PRODUCT_FROM{..} idr idm = resp >>= unpackSingleId
   where resp = queryP ( "MATCH (r:Reaction),(m:Molecule) WHERE ID(r) = {idr} AND ID(m) = {idm}"
                       <> "MERGE (r)-[rel:PRODUCT_FROM {amount : {amount}}]->(m) RETURN ID(rel) AS id" )
                       $ props ["idr" =: getId idr, "idm" =: getId idm, "amount" =: getAmount p'amount]
+
 
 putAccelerateRel :: ACCELERATE -> Id Catalyst -> Id Reaction -> BoltActionT IO (Id ACCELERATE)
 putAccelerateRel ACCELERATE{..} idc idr = resp >>= unpackSingleId
@@ -109,13 +113,6 @@ getCatalystNodeRel (Id i) = do
   forM resp  $ \rec -> liftA2 (,) (fromNode <$> rec `at` "catalyst") (fromRelation <$> rec `at` "accelerate")
 
 
-fromRelation :: URelationLike a => Relationship -> a
-fromRelation = fromURelation . convertRelType
-
-convertRelType :: Relationship -> URelationship
-convertRelType Relationship{..} = URelationship relIdentity relType relProps
-
-
 findShortPath :: Molecule -> Molecule -> BoltActionT IO [Transformation]
 findShortPath start end = do
   let queryText = T.concat [ "MATCH (start:Molecule {smiles : {smiles1}, iupacName : {iupacName1}})"
@@ -129,9 +126,20 @@ findShortPath start end = do
                          , "iupacName1" =: (getName . m'iupacName $ start)
                          , "iupacName2" =: (getName . m'iupacName $ end)
                          ]
-      toMoleculeNode, toReactionNode :: Node -> PathNode
-      toMoleculeNode = liftA2 MoleculeNode (Id . getBoltId) fromNode
-      toReactionNode = liftA2 ReactionNode (Id . getBoltId) fromNode
+  records <- queryP queryText properties
+  forM records $ \rec -> do nodes :: [Node] <- rec `at` "pathNodes"
+                            return $ zipWith ($) (cycle [toMoleculeNode, toReactionNode]) nodes
+
+
+findShortPathById :: Id Molecule -> Id Molecule -> BoltActionT IO [Transformation]
+findShortPathById startId endId = do
+  let queryText = T.concat [ "MATCH (start:Molecule) WHERE id(start) = {startId}"
+                           , "MATCH (end:Molecule) WHERE id(end) = {endId}"
+                           , "MATCH path=allShortestPaths((start)-[:REAGENT_IN | :PRODUCT_FROM *]->(end))"
+                           , "WHERE ALL(n in nodes(path) WHERE n:Molecule OR n:Reaction)"
+                           , "RETURN nodes(path) AS pathNodes"
+                           ]
+      properties = props [ "startId" =: getId startId, "endId" =: getId endId]
   records <- queryP queryText properties
   forM records $ \rec -> do nodes :: [Node] <- rec `at` "pathNodes"
                             return $ zipWith ($) (cycle [toMoleculeNode, toReactionNode]) nodes
