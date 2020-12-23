@@ -127,8 +127,7 @@ findShortPath start end = do
                          , "iupacName2" =: (getName . m'iupacName $ end)
                          ]
   records <- queryP queryText properties
-  forM records $ \rec -> do nodes :: [Node] <- rec `at` "pathNodes"
-                            return $ zipWith ($) (cycle [toMoleculeNode, toReactionNode]) nodes
+  forM records extractTransformation
 
 
 findShortPathById :: Id Molecule -> Id Molecule -> BoltActionT IO [Transformation]
@@ -141,5 +140,4 @@ findShortPathById startId endId = do
                            ]
       properties = props [ "startId" =: getId startId, "endId" =: getId endId]
   records <- queryP queryText properties
-  forM records $ \rec -> do nodes :: [Node] <- rec `at` "pathNodes"
-                            return $ zipWith ($) (cycle [toMoleculeNode, toReactionNode]) nodes
+  forM records extractTransformation

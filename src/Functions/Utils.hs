@@ -7,6 +7,7 @@ module Functions.Utils
   , fromRelation
   , toMoleculeNode
   , toReactionNode
+  , extractTransformation
   ) where
 
 import Types
@@ -35,3 +36,8 @@ toMoleculeNode = liftA2 MoleculeNode (Id . getBoltId) fromNode
 
 toReactionNode :: Node -> PathNode
 toReactionNode = liftA2 ReactionNode (Id . getBoltId) fromNode
+
+extractTransformation :: Record -> BoltActionT IO Transformation
+extractTransformation record = do
+  nodes :: [Node] <- rec `at` "pathNodes"
+  return $ zipWith ($) (cycle [toMoleculeNode, toReactionNode]) nodes
