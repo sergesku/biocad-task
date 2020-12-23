@@ -24,14 +24,18 @@ putReaction :: ReactionData -> BoltActionT IO (Id Reaction)
 putReaction ReactionData{..} = transact $ do
   let (prodNs, prodRs) = unzip rdProducts
       (catNs, accelRs) = unzip rdCatalyst
-  reactId <- putReactionNode rdReaction
-  reagIds <- forM rdReagents putMoleculeNode
-  prodIds <- forM prodNs putMoleculeNode
-  catIds  <- forM catNs putCatalystNode
-  forM_ reagIds $ \idm -> putReagentInRel idm reactId
-  forM_ (zip prodIds prodRs) $ \(molId, rel) -> putProductFromRel rel reactId molId
-  forM_ (zip catIds accelRs) $ \(catId, rel) -> putAccelerateRel  rel catId reactId
-  pure reactId
+  lst <- matchReactionNameNode rdReaction
+  case lst of
+    (x:_) -> do liftIO $ print $ "Warning | Reaction " ++ (show . getName . r'name $ rdReaction) ++ " already exists. Id: " ++ (show . getId $ x)
+                return x
+    []    -> do reactId <- putReactionNode rdReaction
+                reagIds <- forM rdReagents putMoleculeNode
+                prodIds <- forM prodNs putMoleculeNode
+                catIds  <- forM catNs putCatalystNode
+                forM_ reagIds $ \idm -> putReagentInRel idm reactId
+                forM_ (zip prodIds prodRs) $ \(molId, rel) -> putProductFromRel rel reactId molId
+                forM_ (zip catIds accelRs) $ \(catId, rel) -> putAccelerateRel  rel catId reactId
+                pure reactId
 
 
 putReactionNode :: Reaction -> BoltActionT IO (Id Reaction)
@@ -85,6 +89,12 @@ getReaction i = do
   case reaction of
     Nothing -> pure Nothing
     Just r  -> pure $ Just $ ReactionData r rdReagents rdProducts rdCatalyst
+
+
+matchReactionNameNode :: Reaction -> BoltActionT IO [Id Reaction]
+matchReactionNameNode Reaction{..} = do
+  resp <- queryP "MATCH (r:Reaction {name : {name}}) RETURN id(r) AS idr" $ props ["name" =: getName r'name]
+  forM resp $ \ rec -> Id <$> rec `at` "idr"
 
 
 getReactionNode :: Id Reaction -> BoltActionT IO (Maybe Reaction)
