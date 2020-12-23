@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Types where
 
@@ -8,26 +9,12 @@ import Database.Bolt.Extras.Template
 
 type Transformation = [PathNode]
 
-newtype Id a     = Id {getId :: Int} deriving (Eq, Show, Read)
-newtype Smiles a = Smiles {getSmiles :: Text} deriving (Eq, Show, Read)
-newtype Name a   = Name {getName :: Text} deriving (Eq, Show, Read)
-newtype Amount   = Amount {getAmount :: Double} deriving (Eq, Show, Read)
-newtype Temp     = Temp {getTemp :: Double} deriving (Eq, Show, Read)
-newtype Pressure = Pressure {getPressure :: Double} deriving (Eq, Show, Read)
-
-instance ToValue   (Id a)     where toValue   = toValue . getId
-instance FromValue (Id a)     where fromValue = Id . fromValue
-instance ToValue   (Name a)   where toValue   = toValue . getName
-instance FromValue (Name a)   where fromValue = Name . fromValue
-instance ToValue   (Smiles a) where toValue   = toValue . getSmiles
-instance FromValue (Smiles a) where fromValue = Smiles . fromValue
-instance ToValue   Temp       where toValue   = toValue . getTemp
-instance FromValue Temp       where fromValue = Temp . fromValue
-instance ToValue   Amount     where toValue   = toValue . getAmount
-instance FromValue Amount     where fromValue = Amount . fromValue
-instance ToValue   Pressure   where toValue   = toValue . getPressure
-instance FromValue Pressure   where fromValue = Pressure . fromValue
-
+newtype Id a     = Id {getId :: Int}deriving (Eq, Show, Read, ToValue, FromValue)
+newtype Smiles a = Smiles {getSmiles :: Text} deriving (Eq, Show, Read, ToValue, FromValue)
+newtype Name a   = Name {getName :: Text} deriving (Eq, Show, Read, ToValue, FromValue)
+newtype Amount   = Amount {getAmount :: Double} deriving (Eq, Show, Read, ToValue, FromValue)
+newtype Temp     = Temp {getTemp :: Double} deriving (Eq, Show, Read, ToValue, FromValue)
+newtype Pressure = Pressure {getPressure :: Double} deriving (Eq, Show, Read, ToValue, FromValue)
 
 data Molecule = Molecule
 	{ m'smiles    :: Smiles Molecule
