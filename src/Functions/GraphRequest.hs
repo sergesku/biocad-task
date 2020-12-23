@@ -26,11 +26,18 @@ import qualified Data.Map as M (lookup)
 
 
 putReaction :: ReactionData -> BoltActionT IO (Id Reaction)
-putReaction rd = do graphs <- makeRequest @PutRequest [] (putReactionGraph rd)
-                    let mbI = M.lookup "reaction" (_vertices (head graphs))
-                    case mbI of
-                      Just i  -> return $ Id i
-                      Nothing -> throwError NoStructureInResponse
+putReaction rd@ReactionData{..} = do 
+  reactGraph <- makeRequest @GetRequest [] (matchReactionNameGraph rdReaction)
+  let rs :: [Reaction] = extractNode "reaction" <$> reactGraph
+      idr = extractNodeId "reaction" <$> reactGraph
+  case rs of
+    (x:xs) -> do liftIO $ print $ "Warning | Reaction " ++ (show . getName . r'name $ rdReaction) ++ " already exists. Id: " ++ (show idr)
+                 pure . Id . head $ idr
+    []     -> do graphs <- makeRequest @PutRequest [] (putReactionGraph rd)
+                 let mbI = M.lookup "reaction" (_vertices (head graphs))
+                 case mbI of
+                   Just i  -> pure $ Id i
+                   Nothing -> throwError NoStructureInResponse
 
 
 putReactionGraph :: ReactionData -> GraphPutRequest
@@ -120,3 +127,9 @@ getCatalystsGraph (Id i) = emptyGraph & addNode "reaction" reactionNode
     reactionNode  = defaultNodeNotReturn & withLabelQ ''Reaction & withBoltId i
     catalystNode  = defaultNodeReturn & withLabelQ ''Catalyst & withReturn allProps
     accelerateRel = defaultRelReturn & withLabelQ ''ACCELERATE & withReturn allProps
+
+
+matchReactionNameGraph :: Reaction -> GraphGetRequest
+matchReactionNameGraph Reaction{..} = emptyGraph & addNode "reaction" reactionNode
+  where
+    reactionNode = defaultNodeReturn & withLabelQ ''Reaction & withProp ("name" =: getName r'name) & withReturn allProps
