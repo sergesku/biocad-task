@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Functions.Utils 
@@ -13,11 +11,11 @@ module Functions.Utils
 
 import Types
 
-import Data.Text      (Text, pack)
 import Database.Bolt
 import Database.Bolt.Extras
-import Control.Applicative (liftA2)
-import Control.Monad.Error.Class
+import Data.Text                  (Text, pack)
+import Control.Applicative        (liftA2)
+import Control.Monad.Error.Class  (throwError)
 
 indexedNames :: Text -> [Text]
 indexedNames n = map ((n <>) . pack . show) [1..]

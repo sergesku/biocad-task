@@ -1,6 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ParallelListComp #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
@@ -11,18 +9,18 @@ module Functions.GraphRequest
   ) where
 
 import Types
-import Functions.Utils (indexedNames)
+import Functions.Utils              (indexedNames)
 
-import Control.Monad (void, forM)
-import Control.Monad.IO.Class
-import Control.Monad.Error.Class
-import Data.List (foldl')
-import Data.Text (Text, pack)
-import Data.Function ((&))
+import Control.Monad                (forM)
+import Control.Monad.IO.Class       (liftIO)
+import Control.Monad.Error.Class    (throwError)
+import Data.List                    (foldl')
+import Data.Text                    (Text, pack)
+import Data.Function                ((&))
 import Database.Bolt
 import Database.Bolt.Extras
 import Database.Bolt.Extras.Graph
-import qualified Data.Map as M (lookup) 
+import qualified Data.Map as M      (lookup) 
 
 
 putReaction :: ReactionData -> BoltActionT IO (Id Reaction)
@@ -58,14 +56,14 @@ addRelationLike from to = addRelation from to . MergeR . toURelation
 
 
 nodeRelList :: (NodeLike n, URelationLike r) => Direction -> Text -> [(n,r)] -> [GraphPutRequest -> GraphPutRequest]
-nodeRelList dir prefix lst = [ (directed addRelationLike name "reaction" rel) . (addNodeLike name node)
-                             | name <- indexedNames prefix
-                             | (node, rel) <- lst
-                             ]
-                            where
-                              directed f = case dir of
-                                ToReaction   -> f
-                                FromReaction -> flip f
+nodeRelList dir prefix lst = 
+  [ (directed addRelationLike name "reaction" rel) . (addNodeLike name node)
+    | name <- indexedNames prefix
+    | (node, rel) <- lst
+  ] where
+      directed f = case dir of
+                    ToReaction   -> f
+                    FromReaction -> flip f
 
 
 getReaction :: Id Reaction -> BoltActionT IO (Maybe ReactionData)

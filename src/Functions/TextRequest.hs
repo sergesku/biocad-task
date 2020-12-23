@@ -1,23 +1,24 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Functions.TextRequest where
+module Functions.TextRequest
+  ( putReaction
+  , getReaction
+  , findShortPath
+  , findShortPathById
+  ) where
 
 import Types
 import Functions.Utils
 
-import Data.List (foldl')
-import Control.Applicative (liftA2)
-import Control.Monad
-import Control.Monad.IO.Class
-import Data.Text (Text)
-import qualified Data.Text as T
+import Control.Applicative          (liftA2)
+import Control.Monad                (forM, forM_)
+import Control.Monad.IO.Class       (liftIO)
+import Data.Text                    (Text)
+import qualified Data.Text as T     (concat)
 import Database.Bolt
 import Database.Bolt.Extras
-import Database.Bolt.Serialization
 
 
 putReaction :: ReactionData -> BoltActionT IO (Id Reaction)

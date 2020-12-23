@@ -1,11 +1,10 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Types where
 
+import Data.Text                      (Text)
 import Database.Bolt.Extras
 import Database.Bolt.Extras.Template
-import Data.Text (Text)
 
 type Transformation = [PathNode]
 

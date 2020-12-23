@@ -1,17 +1,16 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
-
-module SampleData where
+module SampleData
+  ( randomReaction
+  ) where
 
 import Types
 
-import Data.Maybe (catMaybes)
-import System.Random
-import Data.Text.IO as TIO
-import Data.Text (Text, splitOn, lines)
-import Control.Applicative (liftA2)
-import Control.Monad (replicateM)
-import qualified Data.Text as T
+import Data.Maybe               (catMaybes)
+import System.Random            (randomRIO)
+import Data.Text.IO as TIO      (readFile)
+import Data.Text                (Text, splitOn, lines)
+import Control.Applicative      (liftA2)
+import Control.Monad            (replicateM)
+import qualified Data.Text as T (lines)
 
 
 parseReaction :: Text -> Reaction
