@@ -30,6 +30,7 @@ library:
     - hasbolt
     - hasbolt-extras
     - containers
+    - random
 
 executables:
   biocad-task-exe:
