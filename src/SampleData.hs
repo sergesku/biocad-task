@@ -70,9 +70,9 @@ randomReaction = do
   reacLst <- readReactions
   catLst  <- readCatalysts
   molLst  <- readMolecules
-  reagentN  <- randomRIO (1,3)
-  productN  <- randomRIO (1,3)
-  catalystN <- randomRIO (0,2)
+  reagentN  <- (ceiling . (*3)) <$> randomRIO (0.2, 0.8 :: Float)
+  productN  <- (ceiling . (*3)) <$> randomRIO (0.2, 0.8 :: Float)
+  catalystN <- (floor . (*3)) <$> randomRIO (0.3, 0.8 :: Float)
   rdReaction <- randomListElement reacLst
   rdReagents <- replicateM reagentN (randomListElement molLst)
   rdProducts <- replicateM productN $ liftA2 (,) (randomListElement molLst) randomProductFrom
