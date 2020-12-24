@@ -7,6 +7,7 @@ module Functions.TextRequest
   , getReaction
   , findShortPath
   , findShortPathById
+  , deleteReaction
   , unpackSingleId
   ) where
 
@@ -150,6 +151,9 @@ findShortPathById startId endId = queryP queryText properties >>= mapM (`at` "pa
                           , "WHERE ALL(n in nodes(path) WHERE n:Molecule OR n:Reaction)"
                           , "RETURN nodes(path) AS pathNodes"
                           ]
+
+deleteReaction :: Id Reaction -> BoltActionT IO ()
+deleteReaction i = queryP_ "MATCH (r:Reaction) WHERE id(r) = {idr} DETACH DELETE r" $ props ["idr" =: getId i]
 
 unpackSingleId :: [Record] -> BoltActionT IO (Id a)
 unpackSingleId (rec:_) = Id <$> rec `at` "id"
