@@ -26,15 +26,15 @@ putReaction :: ReactionData -> BoltActionT IO (Id Reaction)
 putReaction rd@ReactionData{..} = do 
   reactGraph <- makeRequest @GetRequest [] (matchReactionNameGraph rdReaction)
   let rs :: [Reaction] = extractNode "reaction" <$> reactGraph
-      idr = extractNodeId "reaction" <$> reactGraph
+      (idr:_) = extractNodeId "reaction" <$> reactGraph
   case rs of
-    (x:xs) -> do liftIO $ print $ "Warning | Reaction " ++ (show . getName . r'name $ rdReaction) ++ " already exists. Id: " ++ (show idr)
-                 pure . Id . head $ idr
-    []     -> do graphs <- makeRequest @PutRequest [] (putReactionGraph rd)
-                 let mbI = M.lookup "reaction" (_vertices (head graphs))
-                 case mbI of
-                   Just i  -> pure $ Id i
-                   Nothing -> throwError NoStructureInResponse
+    [] -> do graphs <- makeRequest @PutRequest [] (putReactionGraph rd)
+             let mbI = M.lookup "reaction" (_vertices (head graphs))
+             case mbI of
+               Just i  -> pure $ Id i
+               Nothing -> throwError NoStructureInResponse
+    _  -> do liftIO $ print $ "Warning | Reaction " ++ (show . getName . r'name $ rdReaction) ++ " already exists. Id: " ++ (show idr)
+             pure $ Id idr
 
 
 putReactionGraph :: ReactionData -> GraphPutRequest
@@ -61,7 +61,7 @@ nodeRelList dir prefix lst =
     | (node, rel) <- lst
   ] where
       indexedNames :: NodeName -> [NodeName]
-      indexedNames n = map ((n <>) . pack . show) [1..]
+      indexedNames n = map ((n <>) . pack . show) [(1 :: Int)..]
       directed :: (a -> a -> b) -> (a -> a -> b)
       directed f = case dir of
                     ToReaction   -> f
@@ -81,9 +81,8 @@ getReaction i = do
       rdProducts = zip productLst productFromLst
       rdCatalyst = zip catalystLst accelerateLst
   case rs of
-    []           -> pure Nothing
-    [rdReaction] -> do liftIO $ print ReactionData{..}
-                       pure $ Just ReactionData{..}
+    [rdReaction] -> pure $ Just ReactionData{..}
+    _            -> pure Nothing
 
 getReactionDataGraphs :: Id Reaction -> [GraphGetRequest]
 getReactionDataGraphs i = [ getReactionGraph i
