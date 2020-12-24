@@ -8,14 +8,14 @@ module Functions.TextRequest
   , findShortPath
   , findShortPathById
   , deleteReaction
-  , unpackSingleId
   ) where
 
 import Types
+import Functions.Utils
+
 import Control.Applicative          (liftA2)
 import Control.Monad                (forM, forM_)
 import Control.Monad.IO.Class       (liftIO)
-import Control.Monad.Error.Class    (throwError)
 import Data.Text                    (Text)
 import qualified Data.Text as T     (concat)
 import Database.Bolt
@@ -154,7 +154,3 @@ findShortPathById startId endId = queryP queryText properties >>= mapM (`at` "pa
 
 deleteReaction :: Id Reaction -> BoltActionT IO ()
 deleteReaction i = queryP_ "MATCH (r:Reaction) WHERE id(r) = {idr} DETACH DELETE r" $ props ["idr" =: getId i]
-
-unpackSingleId :: [Record] -> BoltActionT IO (Id a)
-unpackSingleId (rec:_) = Id <$> rec `at` "id"
-unpackSingleId [] = throwError NoStructureInResponse

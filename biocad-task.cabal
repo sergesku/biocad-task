@@ -1,8 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.2.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: f8c3888ba74e9ea1915cabf8585d83c4a88377ca1b8c22b73c2988b0eb9945aa
 
 name:           biocad-task
 version:        0.1.0.0
@@ -27,6 +29,7 @@ library
   exposed-modules:
       Functions.GraphRequest
       Functions.TextRequest
+      Functions.Utils
       SampleData
       Types
   other-modules:

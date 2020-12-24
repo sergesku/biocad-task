@@ -1,15 +1,15 @@
 module Main where
 
 import Types
-import SampleData
-import Data.Text
+import SampleData                 (randomReaction)
 import Functions.TextRequest
-import Data.Default
+
+import Data.Text
+import Data.Default               (def)
 import Database.Bolt
 import Database.Bolt.Extras.Graph
-import Control.Monad (replicateM, forM, forM_)
-import Control.Exception (bracket)
-
+import Control.Exception          (bracket)
+import Control.Monad              (replicateM, forM, forM_)
 
 boltCfg :: BoltCfg
 boltCfg = def { host = "localhost"
@@ -17,10 +17,8 @@ boltCfg = def { host = "localhost"
               , password = "testDB"
               }
 
-
 runQueryDB :: BoltActionT IO a -> IO a
 runQueryDB act = bracket (connect boltCfg) close (`run` act)
-
 
 main :: IO ()
 main = do

@@ -1,13 +1,13 @@
 module Main where
 
-
 import Types
 import SampleData
+import Functions.Utils
+import Functions.TextRequest
 
 import Test.Hspec
 import Data.Text
 import Data.Text as T (concat)
-import Functions.TextRequest
 import Data.Default
 import Database.Bolt
 import Database.Bolt.Extras.Graph
