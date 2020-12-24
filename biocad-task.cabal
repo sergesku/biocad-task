@@ -27,7 +27,6 @@ library
   exposed-modules:
       Functions.GraphRequest
       Functions.TextRequest
-      Functions.Utils
       SampleData
       Types
   other-modules:
