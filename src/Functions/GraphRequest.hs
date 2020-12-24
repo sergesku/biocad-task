@@ -9,7 +9,6 @@ module Functions.GraphRequest
   ) where
 
 import Types
-import Functions.Utils              (indexedNames)
 
 import Control.Monad                (forM)
 import Control.Monad.IO.Class       (liftIO)
@@ -61,6 +60,9 @@ nodeRelList dir prefix lst =
     | name <- indexedNames prefix
     | (node, rel) <- lst
   ] where
+      indexedNames :: NodeName -> [NodeName]
+      indexedNames n = map ((n <>) . pack . show) [1..]
+      directed :: (a -> a -> b) -> (a -> a -> b)
       directed f = case dir of
                     ToReaction   -> f
                     FromReaction -> flip f
