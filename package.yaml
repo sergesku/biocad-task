@@ -61,3 +61,10 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - biocad-task
+    - hspec
+    - QuickCheck
+    - text
+    - biocad-task
+    - hasbolt
+    - hasbolt-extras
+    - data-default

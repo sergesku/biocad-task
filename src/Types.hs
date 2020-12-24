@@ -4,50 +4,51 @@
 module Types where
 
 import Data.Text                      (Text)
+import Data.List                      (sort)
 import Database.Bolt            
 import Database.Bolt.Extras
 import Database.Bolt.Extras.Template
 
 type Transformation = [PathNode]
 
-newtype Id a     = Id {getId :: Int}deriving (Eq, Show, Read, ToValue, FromValue)
-newtype Smiles a = Smiles {getSmiles :: Text} deriving (Eq, Show, Read, ToValue, FromValue)
-newtype Name a   = Name {getName :: Text} deriving (Eq, Show, Read, ToValue, FromValue)
-newtype Amount   = Amount {getAmount :: Double} deriving (Eq, Show, Read, ToValue, FromValue)
-newtype Temp     = Temp {getTemp :: Double} deriving (Eq, Show, Read, ToValue, FromValue)
-newtype Pressure = Pressure {getPressure :: Double} deriving (Eq, Show, Read, ToValue, FromValue)
+newtype Id a     = Id {getId :: Int}deriving (Eq, Ord, Show, Read, ToValue, FromValue)
+newtype Smiles a = Smiles {getSmiles :: Text} deriving (Eq, Ord, Show, Read, ToValue, FromValue)
+newtype Name a   = Name {getName :: Text} deriving (Eq, Ord, Show, Read, ToValue, FromValue)
+newtype Amount   = Amount {getAmount :: Double} deriving (Eq, Ord, Show, Read, ToValue, FromValue)
+newtype Temp     = Temp {getTemp :: Double} deriving (Eq, Ord, Show, Read, ToValue, FromValue)
+newtype Pressure = Pressure {getPressure :: Double} deriving (Eq, Ord, Show, Read, ToValue, FromValue)
 
 data Molecule = Molecule
 	{ m'smiles    :: Smiles Molecule
 	, m'iupacName :: Name Molecule
-	} deriving (Eq, Show, Read)
+	} deriving (Eq, Ord, Show, Read)
 
 data Catalyst = Catalyst
   { c'smiles :: Smiles Catalyst
   , c'name   :: Maybe (Name Catalyst)
-  } deriving (Eq, Show, Read)
+  } deriving (Eq, Ord, Show, Read)
 
 data Reaction = Reaction
   { r'name :: Name Reaction
-  } deriving (Eq, Show, Read)
+  } deriving (Eq, Ord, Show, Read)
 
 data PRODUCT_FROM = PRODUCT_FROM
   { p'amount :: Amount
-  } deriving (Eq, Show, Read)
+  } deriving (Eq, Ord, Show, Read)
 
-data REAGENT_IN = REAGENT_IN deriving (Eq, Show, Read)
+data REAGENT_IN = REAGENT_IN deriving (Eq, Ord, Show, Read)
 
 data ACCELERATE = ACCELERATE
   { a'temperature :: Temp
   , a'pressure    :: Pressure
-  } deriving (Eq, Show, Read)
+  } deriving (Eq, Ord, Show, Read)
 
 data ReactionData = ReactionData
   { rdReaction  :: Reaction
   , rdReagents  :: [Molecule]
   , rdProducts  :: [(Molecule, PRODUCT_FROM)]
   , rdCatalyst  :: [(Catalyst, ACCELERATE)]
-  } deriving (Eq, Show, Read)
+  } deriving (Show, Read)
 
 data Direction = ToReaction
                | FromReaction
@@ -55,7 +56,7 @@ data Direction = ToReaction
 
 data PathNode = MoleculeNode (Id Molecule) Molecule
               | ReactionNode (Id Reaction) Reaction
-              deriving (Eq, Show, Read)
+              deriving (Eq, Ord, Show, Read)
 
 
 instance NodeLike PathNode where
@@ -68,14 +69,25 @@ instance NodeLike PathNode where
   toNode (ReactionNode (Id i) r) =  Node i ["Reaction"] (getProps $ toNode r)
 
 
+instance Eq ReactionData where
+  rd1 == rd2 = (rdReaction rd1 == rdReaction rd2)
+                  && (sort (rdReagents rd1) == sort (rdReagents rd2))
+                  && (sort (rdProducts rd1) == sort (rdProducts rd2))
+                  && (sort (rdCatalyst rd1) == sort (rdCatalyst rd2))
+
+fromRelation :: URelationLike a => Relationship -> a
+fromRelation = fromURelation . convertRelType
+  where convertRelType Relationship{..} = URelationship relIdentity relType relProps
+
+
 instance RecordValue Reaction where exactEither = fmap fromNode . exactEither
 instance RecordValue Molecule where exactEither = fmap fromNode . exactEither
 instance RecordValue Catalyst where exactEither = fmap fromNode . exactEither
 instance RecordValue PathNode where exactEither = fmap fromNode . exactEither
 
-instance RecordValue REAGENT_IN   where exactEither = fmap fromURelation . exactEither
-instance RecordValue PRODUCT_FROM where exactEither = fmap fromURelation . exactEither
-instance RecordValue ACCELERATE   where exactEither = fmap fromURelation . exactEither
+instance RecordValue REAGENT_IN   where exactEither = fmap fromRelation . exactEither
+instance RecordValue PRODUCT_FROM where exactEither = fmap fromRelation . exactEither
+instance RecordValue ACCELERATE   where exactEither = fmap fromRelation . exactEither
 
 
 makeURelationLike ''REAGENT_IN

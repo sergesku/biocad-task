@@ -7,14 +7,14 @@ module Functions.TextRequest
   , getReaction
   , findShortPath
   , findShortPathById
+  , unpackSingleId
   ) where
 
 import Types
-import Functions.Utils              (unpackSingleId)
-
 import Control.Applicative          (liftA2)
 import Control.Monad                (forM, forM_)
 import Control.Monad.IO.Class       (liftIO)
+import Control.Monad.Error.Class    (throwError)
 import Data.Text                    (Text)
 import qualified Data.Text as T     (concat)
 import Database.Bolt
@@ -150,3 +150,7 @@ findShortPathById startId endId = queryP queryText properties >>= mapM (`at` "pa
                           , "WHERE ALL(n in nodes(path) WHERE n:Molecule OR n:Reaction)"
                           , "RETURN nodes(path) AS pathNodes"
                           ]
+
+unpackSingleId :: [Record] -> BoltActionT IO (Id a)
+unpackSingleId (rec:_) = Id <$> rec `at` "id"
+unpackSingleId [] = throwError NoStructureInResponse

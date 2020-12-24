@@ -71,6 +71,12 @@ test-suite biocad-task-test
   default-extensions: OverloadedStrings RecordWildCards
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      QuickCheck
+    , base >=4.7 && <5
     , biocad-task
+    , data-default
+    , hasbolt
+    , hasbolt-extras
+    , hspec
+    , text
   default-language: Haskell2010
