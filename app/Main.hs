@@ -4,10 +4,8 @@ import Types
 import SampleData                 (randomReaction)
 import Functions.TextRequest
 
-import Data.Text
 import Data.Default               (def)
 import Database.Bolt
-import Database.Bolt.Extras.Graph
 import Control.Exception          (bracket)
 import Control.Monad              (replicateM, forM, forM_)
 

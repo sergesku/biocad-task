@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f8c3888ba74e9ea1915cabf8585d83c4a88377ca1b8c22b73c2988b0eb9945aa
+-- hash: 72a34dc9b86028ca73d54213fe3bfb4a089edc32de644ba5f53463a0dc8c727d
 
 name:           biocad-task
 version:        0.1.0.0
@@ -54,14 +54,12 @@ executable biocad-task-exe
   hs-source-dirs:
       app
   default-extensions: OverloadedStrings RecordWildCards
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wextra -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , biocad-task
     , data-default
     , hasbolt
-    , hasbolt-extras
-    , text
   default-language: Haskell2010
 
 test-suite biocad-task-test
@@ -74,12 +72,10 @@ test-suite biocad-task-test
   default-extensions: OverloadedStrings RecordWildCards
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      QuickCheck
-    , base >=4.7 && <5
+      base >=4.7 && <5
     , biocad-task
     , data-default
     , hasbolt
-    , hasbolt-extras
     , hspec
     , text
   default-language: Haskell2010

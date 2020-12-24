@@ -41,7 +41,6 @@ packages:
 #
 extra-deps:
 - hasbolt-extras-0.0.1.4@sha256:1e2f838d36a188f57c2ce829fc06a28df195c7e1d115f3ffec4b0d953e3af7a2,3837
-- QuickCheck-2.14
 # Override default flag values for local packages and extra-deps
 # flags: {}
 

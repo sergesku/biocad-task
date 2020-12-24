@@ -19,9 +19,9 @@ newtype Temp     = Temp {getTemp :: Double} deriving (Eq, Ord, Show, Read, ToVal
 newtype Pressure = Pressure {getPressure :: Double} deriving (Eq, Ord, Show, Read, ToValue, FromValue)
 
 data Molecule = Molecule
-	{ m'smiles    :: Smiles Molecule
-	, m'iupacName :: Name Molecule
-	} deriving (Eq, Ord, Show, Read)
+  { m'smiles    :: Smiles Molecule
+  , m'iupacName :: Name Molecule
+  } deriving (Eq, Ord, Show, Read)
 
 data Catalyst = Catalyst
   { c'smiles :: Smiles Catalyst

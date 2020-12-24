@@ -41,14 +41,14 @@ executables:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
+    - -Wall
+    - -Wextra
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - text
     - biocad-task
     - hasbolt
-    - hasbolt-extras
     - data-default
 
 tests:
@@ -62,9 +62,6 @@ tests:
     dependencies:
     - biocad-task
     - hspec
-    - QuickCheck
     - text
-    - biocad-task
     - hasbolt
-    - hasbolt-extras
     - data-default

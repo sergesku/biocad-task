@@ -14,40 +14,32 @@ import Database.Bolt
 import Control.Monad      (void)
 import Control.Exception  (bracket)
 
-
 boltCfg :: BoltCfg
 boltCfg = def { host = "localhost"
               , user = "neo4j"
               , password = "testDB"
               }
 
-
 runQueryDB :: BoltActionT IO a -> IO a
 runQueryDB act = bracket (connect boltCfg) close (`run` act)
-
 
 flushDB :: IO ()
 flushDB = runQueryDB $ query_ "MATCH (node) DETACH DELETE node"
 
-
 r :: Reaction
 r = Reaction (Name "rName")
-
 
 m1,m2,m3 :: Molecule
 m1 = Molecule (Smiles "m1Smiles") (Name "m1IupacName")
 m2 = Molecule (Smiles "m2Smiles") (Name "m2IupacName")
 m3 = Molecule (Smiles "m3Smiles") (Name "m3IupacName")
 
-
 c1, c2 :: Catalyst
 c1 = Catalyst (Smiles "c1Smiles") (Just $ Name "c1Name")
 c2 = Catalyst (Smiles "c2Smiles") Nothing
 
-
 p1 :: PRODUCT_FROM
 p1 = PRODUCT_FROM (Amount 12.4)
-
 
 a1,a2 :: ACCELERATE
 a1 = ACCELERATE (Temp 314.23) (Pressure 132.99)
