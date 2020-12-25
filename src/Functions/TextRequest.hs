@@ -153,4 +153,4 @@ findShortPathById startId endId = queryP queryText properties >>= mapM (`at` "pa
                           ]
 
 deleteReaction :: Id Reaction -> BoltActionT IO ()
-deleteReaction i = queryP_ "MATCH (r:Reaction) WHERE id(r) = {idr} DETACH DELETE r" $ props ["idr" =: getId i]
+deleteReaction i = queryP_ "MATCH p=(r:Reaction)-[rel]-() WHERE id(r) = {idr} DELETE rel,r" $ props ["idr" =: getId i]
