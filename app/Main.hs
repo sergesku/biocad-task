@@ -1,13 +1,11 @@
 module Main where
 
-import SampleData                 (randomReaction)
-import Functions.TextRequest
+import SampleData           (putSampleData)
 
-import Data.Default               (def)
 import Database.Bolt
-import Control.Exception          (bracket)
-import Control.Monad              (replicateM, forM_)
-import Control.Monad.IO.Class     (liftIO)
+import Data.Default         (def)
+import Control.Exception    (bracket)
+
 
 boltCfg :: BoltCfg
 boltCfg = def { host = "localhost"
@@ -20,6 +18,6 @@ runQueryDB act = bracket (connect boltCfg) close (`run` act)
 
 main :: IO ()
 main = do
-  reacts <- replicateM 50 randomReaction
-  runQueryDB $ forM_ reacts $ \r -> do i <- putReaction r
-                                       liftIO $ print $ "Created reaction: Id " ++ show i
+  putStrLn "Enter number of generated reactions:"
+  n <- read <$> getLine
+  runQueryDB $ putSampleData n

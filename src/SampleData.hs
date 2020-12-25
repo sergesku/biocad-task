@@ -1,16 +1,21 @@
 module SampleData
   ( randomReaction
+  , putSampleData
   ) where
 
 import Types
+import Functions.TextRequest          (putReaction)
 
-import Data.Maybe               (catMaybes)
-import System.Random            (randomRIO)
-import Data.Text.IO as TIO      (readFile)
-import Data.Text                (Text, splitOn, lines)
-import Control.Applicative      (liftA2)
-import Control.Monad            (replicateM)
-import qualified Data.Text as T (lines)
+import Control.Applicative            (liftA2)
+import Control.Monad                  (replicateM, forM_)
+import Control.Monad.IO.Class         (liftIO)
+import Data.Maybe                     (catMaybes)
+import Database.Bolt                  
+import System.Random                  (randomRIO)
+import           Data.Text            (Text)
+import qualified Data.Text    as T    (splitOn, lines)
+import qualified Data.Text.IO as TIO  (readFile)
+   
 
 
 parseReaction :: Text -> Reaction
@@ -18,13 +23,13 @@ parseReaction = Reaction . Name
 
 
 parseMolecule :: Text -> Maybe Molecule
-parseMolecule txt = case splitOn "; " txt of
+parseMolecule txt = case T.splitOn "; " txt of
                       (smiles:iupacName:_) -> Just $ Molecule (Smiles smiles) (Name iupacName)
                       _                    -> Nothing
 
 
 parseCatalyst :: Text -> Maybe Catalyst
-parseCatalyst txt = case splitOn "; " txt of
+parseCatalyst txt = case T.splitOn "; " txt of
                       []              -> Nothing
                       [smiles]        -> Just $ Catalyst (Smiles smiles) Nothing
                       (smiles:name:_) -> Just $ Catalyst (Smiles smiles) (Just $ Name name)
@@ -45,7 +50,7 @@ readMolecules = do
 readCatalysts :: IO [Catalyst]
 readCatalysts = do 
   input <- TIO.readFile "./SampleData/Catalysts.csv"
-  pure $ catMaybes . fmap parseCatalyst. tail . T.lines $ input
+  pure $ catMaybes . fmap parseCatalyst . tail . T.lines $ input
 
 
 randomListElement :: [a] -> IO a
@@ -77,3 +82,10 @@ randomReaction = do
   rdProducts <- replicateM productN $ liftA2 (,) (randomListElement molLst) randomProductFrom
   rdCatalyst <- replicateM catalystN $ liftA2 (,) (randomListElement catLst) randomAccelerate
   pure ReactionData{..}
+
+
+putSampleData :: Int -> BoltActionT IO ()
+putSampleData n = do
+  reacts <- liftIO $ replicateM n randomReaction
+  forM_ reacts $ \r -> do i <- putReaction r
+                          liftIO $ print $ "Created reaction: Id " ++ show i
