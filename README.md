@@ -45,10 +45,11 @@
 
 ### Работа с базой данных
 
+Для работы с базой данных предназначены модули **Functions.TextRequest** и **Functions.GraphRequest**.
+
  ##### Functions.TextRequest
  
- 
-Для работы с базой данных предназначен модуль **Functions.TextRequest**, импортирующий следующие функции
+ Модуль **Functions.TextRequest** основан на текстовых Cypher запросах. Он импортирует следующие функции
 
 * добавление реакции в БД:
 ```java
@@ -76,7 +77,8 @@ deleteReaction :: Id Reaction -> BoltActionT IO ()
 
  ##### Functions.GraphQueries
 
-Кроме того в библиотеке присутствует модуль Functions.GraphRequest, импортирующий следующие функции:
+Модуль **Functions.GraphRequest** основан на построении запросов из графовых шаблонов. В его основе лежит модуль **Database.Bolt.Extras.Graph**.
+Модуль экспортирует только 2 функции:
 
 * добавление реакции в БД:
 ```java
@@ -87,14 +89,11 @@ putReaction :: ReactionData -> BoltActionT IO (Id Reaction)
 getReaction :: Id Reaction -> BoltActionT IO (Maybe ReactionData)
 ```
 
-Функции данного модуля используют запросы на основе шаблонов графов.
-
-
 
 ### Наполнение тестовой базы данных  
 
-
-Для наполнения тестовой базы данных используется функция *putSampleData* из модуля **SampleData**.
+Для генерации данных и наполнения тестовой базы данных используется функция *putSampleData* из модуля **SampleData**.
+Функция использует данные из файлов `Reactions.csv`,`Molecules.csv`,`Catalyst.scv` в папке `SampleData`.
 ```java
 putSampleData :: Int -> BoltActionT IO ()
 ```
@@ -116,13 +115,13 @@ main = do
   n <- read <$> getLine
   runQueryDB $ putSampleData n
 ```
-В данной библиотеки используется логика, запрещающая повторное создание или модификацию уже существующей а базе данных реакции. Если в результате генерации реакции будет повторно использоваться уже существующее имя реакции, то такая реакция не будет добавлена в тестовую БД. Это следует учитывать при выборе чмсла генераций, передаваемых в функцию *putSampleData*.
+В данной библиотеки используется логика, запрещающая повторное создание или модификацию уже существующей а базе данных реакции. Если в результате генерации реакции будет повторно использоваться уже существующее имя реакции, то такая реакция не будет добавлена в тестовую БД. Это следует учитывать при выборе числа генераций, передаваемых в функцию *putSampleData*.
 
 ### Размышления по поводу дополнительных вопросов
 
-В структуру базы данных можно добавить компонент-взаимоотношение `DESCRIBES` и компонент-узел `Mechanism`.
-Механизм реакции должен содержать информацию об интермедиатах, переходных состояниях и продуктах реакции.
+В структуру базы данных можно добавить компонент-узел `Mechanism` и компонент-взаимоотношение `DESCRIBES`.
 
+Механизм реакции должен содержать информацию об интермедиатах, переходных состояниях и продуктах реакции.
 Соответственно возможно введение:
 * компонентов группы "Интермедиатов"
 	* Карбкатион `Carbocation`
@@ -130,23 +129,25 @@ main = do
 	* ...
 	* Нитрен `Nitrene`
 * компонента "Переходного состояния" `TransitionState`
-* компонент-взаимоотношение `CONTAINS`
+* компонента-взаимоотношение `TRANSITION_IN`
+* компонента-взаимоотношение `INTERMEDIATE_IN`
 
 В Haskell можно ввести типы данных
 ```java
-data DESCRIBES = DESCRIBES{..}
-data CONTAINS  = CONTAINS{..}
+data DESCRIBES       = DESCRIBES{..}
+data TRANSITION_IN   = TRANSITION_IN{..}
+data INTERMEDIATE_IN = INTERMEDIATE_IN{..}
 ```
 
 ```java
 data Intermediate = Carbocation{..}
-				  | Carbanion{..}
-				  | ...
-				  | Nitrene{..}
+		  | Carbanion{..}
+		  | ...
+		  | Nitrene{..}
 				  
 data TransitionState = TransitionState{..}
 
-data Mechanism = Mechanism [Intermediate] [TransitionState]
+data Mechanism = Mechanism [(Intermediate, INTERMEDIATE_IN)] [(TransitionState, TRANSITION_IN)]
 ```
 
 Тип данных `ReactionData` следует дополнить полем `Mechanism`
