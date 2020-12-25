@@ -1,6 +1,6 @@
 # biocad-task
-
-[Описание задачи:](https://github.com/biocad/career/blob/master/tests/haskell.md)
+<details>
+  <summary> Описание задачи</summary>
 
 Наш департамент работает с большим количеством информации, которую удобно представлять в виде графа.
 Это могут быть последовательности аминокислот, связанные с различными видами структур, или же химические реагенты и катализаторы, связанные с помощью реакций с получившимися продуктами.
@@ -40,3 +40,120 @@
 В процессе развития системы будут добавляться различные компоненты, например, механизм реакции. Предлагается ответить на следующие вопросы:
 - какие абстракции или вспомогательные компоненты можно ввести на уровне базы данных, чтобы новые полученные знания ладно укладывались в систему?
 - какие абстракции вы бы предложили ввести в Haskell-реализацию?
+
+</details>
+
+### Работа с базой данных
+
+ ##### Functions.TextRequest
+ 
+ 
+Для работы с базой данных предназначен модуль **Functions.TextRequest**, импортирующий следующие функции
+
+* добавление реакции в БД:
+```java
+putReaction :: ReactionData -> BoltActionT IO (Id Reaction)
+```
+* извлечение реакции из БД по указанному Id:
+```java
+getReaction :: Id Reaction -> BoltActionT IO (Maybe ReactionData)
+```
+* Нахождение всех кратчайших путей через Реакции и Молекулы между молекулами:
+```java
+findShortPath :: Molecule -> Molecule -> BoltActionT IO [Transformation]
+```
+* Нахождение всех кратчайших путей через Реакции и Молекулы между молекулами по переданным Id:
+```java
+findShortPathById :: Id Molecule -> Id Molecule -> BoltActionT IO [Transformation]
+```
+* Удаление узла реакции и связей из БД по передаyyjve Id:
+```java
+deleteReaction :: Id Reaction -> BoltActionT IO ()
+```
+Следует отметить, что функции *findShortPath*, *findShortPathById* ищут кратчайшие пути от первого агрумента до второго.
+Если требуется найти кратчайший путь в любом из направлений, то следует использовать функцию дважды с изменением порядка агрументов.
+
+
+ ##### Functions.GraphQueries
+
+Кроме того в библиотеке присутствует модуль Functions.GraphRequest, импортирующий следующие функции:
+
+* добавление реакции в БД:
+```java
+putReaction :: ReactionData -> BoltActionT IO (Id Reaction)
+```
+* извлечение реакции из БД по указанному Id:
+```java
+getReaction :: Id Reaction -> BoltActionT IO (Maybe ReactionData)
+```
+
+Функции данного модуля используют запросы на основе шаблонов графов.
+
+
+
+### Наполнение тестовой базы данных  
+
+
+Для наполнения тестовой базы данных используется функция *putSampleData* из модуля **SampleData**.
+```java
+putSampleData :: Int -> BoltActionT IO ()
+```
+Ниже приведен пример использования данной функции из модуля **Main**:
+
+```java
+boltCfg :: BoltCfg
+boltCfg = def { host = "localhost"
+              , user = "neo4j"
+              , password = "testDB"
+              }
+
+runQueryDB :: BoltActionT IO a -> IO a
+runQueryDB act = bracket (connect boltCfg) close (`run` act)
+
+main :: IO ()
+main = do
+  putStrLn "Enter number of generated reactions:"
+  n <- read <$> getLine
+  runQueryDB $ putSampleData n
+```
+В данной библиотеки используется логика, запрещающая повторное создание или модификацию уже существующей а базе данных реакции. Если в результате генерации реакции будет повторно использоваться уже существующее имя реакции, то такая реакция не будет добавлена в тестовую БД. Это следует учитывать при выборе чмсла генераций, передаваемых в функцию *putSampleData*.
+
+### Размышления по поводу дополнительных вопросов
+
+В структуру базы данных можно добавить компонент-взаимоотношение `DESCRIBES` и компонент-узел `Mechanism`.
+Механизм реакции должен содержать информацию об интермедиатах, переходных состояниях и продуктах реакции.
+
+Соответственно возможно введение:
+* компонентов группы "Интермедиатов"
+	* Карбкатион `Carbocation`
+	* Карбанион `Carbanion`
+	* ...
+	* Нитрен `Nitrene`
+* компонента "Переходного состояния" `TransitionState`
+* компонент-взаимоотношение `CONTAINS`
+
+В Haskell можно ввести типы данных
+```java
+data DESCRIBES = DESCRIBES{..}
+data CONTAINS  = CONTAINS{..}
+```
+
+```java
+data Intermediate = Carbocation{..}
+				  | Carbanion{..}
+				  | ...
+				  | Nitrene{..}
+				  
+data TransitionState = TransitionState{..}
+
+data Mechanism = Mechanism [Intermediate] [TransitionState]
+```
+
+Тип данных `ReactionData` следует дополнить полем `Mechanism`
+```java
+data ReactionData = ReactionData
+	{ rdName :: Name Reaction
+	, ...
+	, rdMechanism :: Maybe (Mechanism, DESCRIBES)
+	}
+```
