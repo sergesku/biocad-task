@@ -75,9 +75,9 @@ createTestReactionQuery2 = "CREATE (r:Reaction {name: \"rName\"}) RETURN id(r) a
 
 
 main :: IO ()
-main = hspec $ before_ flushDB $ do
+main = hspec $ do
   describe "Functions.TextQuery" $ do
-    describe "getReaction" $ do
+    describe "getReaction" $ before_ flushDB $ do
         it "gets proper Reaction with 2 reagents, 1 products, 2 catalyst from Database" $ do
             mbReaction <- runQueryDB $ do idr <- query createTestReactionQuery1 >>= unpackSingleId
                                           TR.getReaction idr
@@ -102,21 +102,21 @@ main = hspec $ before_ flushDB $ do
                                            TR.getReaction idr
             mbReaction2 `shouldBe` pure reaction
 
-    describe "putReaction" $
+    describe "putReaction" $ before_ flushDB $
       it "doesn`t allow to modify the existing Reaction" $ do
         mbReaction <- runQueryDB $ do void $ TR.putReaction testReaction2
                                       idr <- TR.putReaction testReaction1
                                       TR.getReaction idr
         mbReaction `shouldBe` pure testReaction2
     
-    describe "putReaction + getReaction" $
+    describe "putReaction + getReaction" $ before_ flushDB $
       it "gets initial Reaction back" $ do
           reaction   <- randomReaction
           mbReaction <- runQueryDB $ TR.putReaction reaction >>= TR.getReaction
           mbReaction `shouldBe` pure reaction
 
   describe "Functions.GraphQuery" $ do
-    describe "getReaction" $ do
+    describe "getReaction" $ before_ flushDB $ do
         it "gets proper Reaction with 2 reagents, 1 products, 2 catalyst from Database" $ do
             mbReaction <- runQueryDB $ do idr <- query createTestReactionQuery1 >>= unpackSingleId
                                           GR.getReaction idr
@@ -141,14 +141,14 @@ main = hspec $ before_ flushDB $ do
                                            GR.getReaction idr
             mbReaction2 `shouldBe` pure reaction
 
-    describe "putReaction" $
+    describe "putReaction" $ before_ flushDB $
       it "doesn`t allow to modify the existing Reaction" $ do
         mbReaction <- runQueryDB $ do void $ GR.putReaction testReaction2
                                       idr <- GR.putReaction testReaction1
                                       GR.getReaction idr
         mbReaction `shouldBe` pure testReaction2
     
-    describe "putReaction + getReaction" $
+    describe "putReaction + getReaction" $ before_ flushDB $
       it "gets initial Reaction back" $ do
           reaction   <- randomReaction
           mbReaction <- runQueryDB $ GR.putReaction reaction >>= GR.getReaction

@@ -59,6 +59,11 @@ data PathNode = MoleculeNode (Id Molecule) Molecule
               deriving (Eq, Ord, Show, Read)
 
 
+fromRelation :: URelationLike a => Relationship -> a
+fromRelation = fromURelation . convertRelType
+  where convertRelType Relationship{..} = URelationship relIdentity relType relProps
+
+
 instance NodeLike PathNode where
   fromNode node | "Molecule" `elem` labels = MoleculeNode (Id idNode) (fromNode node)
                 | "Reaction" `elem`labels  = ReactionNode (Id idNode) (fromNode node)
@@ -74,11 +79,6 @@ instance Eq ReactionData where
                   && (sort (rdReagents rd1) == sort (rdReagents rd2))
                   && (sort (rdProducts rd1) == sort (rdProducts rd2))
                   && (sort (rdCatalyst rd1) == sort (rdCatalyst rd2))
-
-fromRelation :: URelationLike a => Relationship -> a
-fromRelation = fromURelation . convertRelType
-  where convertRelType Relationship{..} = URelationship relIdentity relType relProps
-
 
 instance RecordValue Reaction where exactEither = fmap fromNode . exactEither
 instance RecordValue Molecule where exactEither = fmap fromNode . exactEither

@@ -1,10 +1,13 @@
 module Main where
 
-import SampleData           (putSampleData)
+import Types
+import SampleData                             (putSampleData)
+import Functions.TextRequest
+import qualified Functions.GraphRequest as G  
 
 import Database.Bolt
-import Data.Default         (def)
-import Control.Exception    (bracket)
+import Data.Default                           (def)
+import Control.Exception                      (bracket)
 
 
 boltCfg :: BoltCfg

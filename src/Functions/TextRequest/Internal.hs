@@ -55,11 +55,11 @@ matchReactionNameNode Reaction{..} = do
   forM resp $ \ rec -> Id <$> rec `at` "idr"
 
 
-getReactionNode :: Id Reaction -> BoltActionT IO (Maybe Reaction)
-getReactionNode (Id i) = do 
-  resp <- queryP "MATCH (r:Reaction) WHERE ID(r) = {i} RETURN r AS reaction" $ props ["i" =: i]
+getNode :: RecordValue a => Id a -> BoltActionT IO (Maybe a)
+getNode (Id i) = do 
+  resp <- queryP "MATCH (n) WHERE ID(n) = {i} RETURN n AS node" $ props ["i" =: i]
   case resp of
-    [rec] -> Just <$> rec `at` "reaction"
+    [rec] -> Just <$> rec `at` "node"
     _     -> pure Nothing
 
 
