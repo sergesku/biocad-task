@@ -28,12 +28,6 @@ dependencies:
 
 library:
   source-dirs: src
-  exposed-modules:
-    - Types
-    - Functions.TextRequest
-    - Functions.GraphRequest
-    - Functions.Utils
-    - SampleData
   dependencies:
     - mtl
     - text

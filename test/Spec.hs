@@ -3,8 +3,9 @@ module Main where
 import Types
 import SampleData
 import Functions.Utils
-import qualified Functions.TextRequest  as TR
-import qualified Functions.GraphRequest as GR
+import qualified Functions.TextRequest           as TR
+import qualified Functions.TextRequest.Internal  as ITR
+import qualified Functions.GraphRequest          as GR
 
 import Test.Hspec
 import Data.Text
@@ -23,8 +24,8 @@ boltCfg = def { host = "localhost"
 runQueryDB :: BoltActionT IO a -> IO a
 runQueryDB act = bracket (connect boltCfg) close (`run` act)
 
-flushDB :: IO ()
-flushDB = runQueryDB $ query_ "MATCH (node) DETACH DELETE node"
+flushDB :: BoltActionT IO ()
+flushDB = query_ "MATCH (node) DETACH DELETE node"
 
 r :: Reaction
 r = Reaction (Name "rName")
@@ -77,80 +78,122 @@ createTestReactionQuery2 = "CREATE (r:Reaction {name: \"rName\"}) RETURN id(r) a
 main :: IO ()
 main = hspec $ do
   describe "Functions.TextQuery" $ do
-    describe "getReaction" $ before_ flushDB $ do
-        it "gets proper Reaction with 2 reagents, 1 products, 2 catalyst from Database" $ do
-            mbReaction <- runQueryDB $ do idr <- query createTestReactionQuery1 >>= unpackSingleId
+    describe "getReaction" $ do
+        it "gets proper Reaction with 2 reagents, 1 products, 2 catalyst from the Database" $ do
+            mbReaction <- runQueryDB $ do flushDB
+                                          idr <- query createTestReactionQuery1 >>= unpackSingleId
                                           TR.getReaction idr
             mbReaction `shouldBe` pure testReaction1
   
         it "gets proper Reaction with 0 reagents, 0 products, 0 catalyst from the Database" $ do
-            mbReaction <- runQueryDB $ do idr <- query createTestReactionQuery2 >>= unpackSingleId
+            mbReaction <- runQueryDB $ do flushDB
+                                          idr <- query createTestReactionQuery2 >>= unpackSingleId
                                           TR.getReaction idr
             mbReaction `shouldBe` pure testReaction2
   
         it "gets Nothing when Reaction doesn`t exist in the Database" $ do
-            reaction   <- randomReaction
-            mbReaction <- runQueryDB $ do idr <- TR.putReaction reaction
+            reaction   <- randomReactionData
+            mbReaction <- runQueryDB $ do flushDB
+                                          idr <- TR.putReaction reaction
                                           TR.deleteReaction idr
                                           TR.getReaction idr
             mbReaction `shouldBe` Nothing
       
         it "doesn`t change Reaction in the Database" $ do
-            reaction    <- randomReaction
-            mbReaction2 <- runQueryDB $ do idr <- TR.putReaction reaction 
+            reaction    <- randomReactionData
+            mbReaction2 <- runQueryDB $ do flushDB
+                                           idr <- TR.putReaction reaction 
                                            void $ TR.getReaction idr
                                            TR.getReaction idr
             mbReaction2 `shouldBe` pure reaction
 
-    describe "putReaction" $ before_ flushDB $
-      it "doesn`t allow to modify the existing Reaction" $ do
-        mbReaction <- runQueryDB $ do void $ TR.putReaction testReaction2
+    describe "putReaction" $
+      it "doesn`t allow to modify an existing Reaction" $ do
+        mbReaction <- runQueryDB $ do flushDB
+                                      void $ TR.putReaction testReaction2
                                       idr <- TR.putReaction testReaction1
                                       TR.getReaction idr
         mbReaction `shouldBe` pure testReaction2
     
-    describe "putReaction + getReaction" $ before_ flushDB $
+    describe "putReaction + getReaction" $
       it "gets initial Reaction back" $ do
-          reaction   <- randomReaction
-          mbReaction <- runQueryDB $ TR.putReaction reaction >>= TR.getReaction
+          reaction   <- randomReactionData
+          mbReaction <- runQueryDB $ flushDB >> TR.putReaction reaction >>= TR.getReaction
           mbReaction `shouldBe` pure reaction
 
+    describe "findShortPathById" $ 
+      context "when start and end are the same" $ do
+        context "when Molecule exists in the Database" $ 
+          it "gets one Transformation in which only this single Molecule" $ do
+              molecule   <- randomMolecule
+              (idm, lst) <- runQueryDB $ do flushDB
+                                            idm <- ITR.putMoleculeNode molecule
+                                            lst <- TR.findShortPathById idm idm
+                                            pure (idm, lst)
+              lst `shouldBe` [[MoleculeNode idm molecule]]
+
+        context "when Molecule doesn`t exist in the Database" $
+          it "gets empty list of Transformation" $ do
+              lst <- runQueryDB $ flushDB >> TR.findShortPathById (Id 145) (Id 145)
+              lst `shouldBe` [[]]
+
+    describe "findShortPath" $ 
+      context "when start and end are the same" $ do
+        context "when Molecule exists in the Database" $ 
+          it "gets one Transformation in which only this single Molecule" $ do
+              molecule   <- randomMolecule
+              (idm, lst) <- runQueryDB $ do flushDB
+                                            idm <- ITR.putMoleculeNode molecule
+                                            lst <- TR.findShortPath molecule molecule
+                                            pure (idm, lst)
+              lst `shouldBe` [[MoleculeNode idm molecule]]
+
+        context "when Molecule doesn`t exist in the Database" $
+          it "gets empty list of Transformation" $ do
+              lst <- runQueryDB $ flushDB >> TR.findShortPath m1 m1
+              lst `shouldBe` [[]]
+
   describe "Functions.GraphQuery" $ do
-    describe "getReaction" $ before_ flushDB $ do
-        it "gets proper Reaction with 2 reagents, 1 products, 2 catalyst from Database" $ do
-            mbReaction <- runQueryDB $ do idr <- query createTestReactionQuery1 >>= unpackSingleId
+    describe "getReaction" $ do
+        it "gets proper Reaction with 2 reagents, 1 products, 2 catalyst from the Database" $ do
+            mbReaction <- runQueryDB $ do flushDB
+                                          idr <- query createTestReactionQuery1 >>= unpackSingleId
                                           GR.getReaction idr
             mbReaction `shouldBe` pure testReaction1
   
         it "gets proper Reaction with 0 reagents, 0 products, 0 catalyst from the Database" $ do
-            mbReaction <- runQueryDB $ do idr <- query createTestReactionQuery2 >>= unpackSingleId
+            mbReaction <- runQueryDB $ do flushDB
+                                          idr <- query createTestReactionQuery2 >>= unpackSingleId
                                           GR.getReaction idr
             mbReaction `shouldBe` pure testReaction2
   
         it "gets Nothing when Reaction doesn`t exist in the Database" $ do
-            reaction   <- randomReaction
-            mbReaction <- runQueryDB $ do idr <- GR.putReaction reaction
+            reaction   <- randomReactionData
+            mbReaction <- runQueryDB $ do flushDB
+                                          idr <- GR.putReaction reaction
                                           TR.deleteReaction idr
                                           GR.getReaction idr
             mbReaction `shouldBe` Nothing
       
         it "doesn`t change Reaction in the Database" $ do
-            reaction    <- randomReaction
-            mbReaction2 <- runQueryDB $ do idr <- GR.putReaction reaction 
+            reaction    <- randomReactionData
+            mbReaction2 <- runQueryDB $ do flushDB
+                                           idr <- GR.putReaction reaction 
                                            void $ GR.getReaction idr
                                            GR.getReaction idr
             mbReaction2 `shouldBe` pure reaction
 
-    describe "putReaction" $ before_ flushDB $
-      it "doesn`t allow to modify the existing Reaction" $ do
-        mbReaction <- runQueryDB $ do void $ GR.putReaction testReaction2
+    describe "putReaction" $
+      it "doesn`t allow to modify an existing Reaction" $ do
+        mbReaction <- runQueryDB $ do flushDB
+                                      void $ GR.putReaction testReaction2
                                       idr <- GR.putReaction testReaction1
                                       GR.getReaction idr
         mbReaction `shouldBe` pure testReaction2
     
-    describe "putReaction + getReaction" $ before_ flushDB $
+    describe "putReaction + getReaction" $
       it "gets initial Reaction back" $ do
-          reaction   <- randomReaction
-          mbReaction <- runQueryDB $ GR.putReaction reaction >>= GR.getReaction
+          reaction   <- randomReactionData
+          mbReaction <- runQueryDB $ flushDB >> GR.putReaction reaction >>= GR.getReaction
           mbReaction `shouldBe` pure reaction
             

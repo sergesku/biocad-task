@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f72be64ddb8e939cccb1b4d2a2aff49e21259809b45c8acc63b7df3d26609a70
+-- hash: d4bd0f5e895c17635724f9a02ede89ebbe482198f8aff5e6677347b34a8f3358
 
 name:           biocad-task
 version:        0.1.0.0
@@ -27,14 +27,14 @@ source-repository head
 
 library
   exposed-modules:
-      Types
-      Functions.TextRequest
       Functions.GraphRequest
-      SampleData
-  other-modules:
       Functions.GraphRequest.Internal
+      Functions.TextRequest
       Functions.TextRequest.Internal
       Functions.Utils
+      SampleData
+      Types
+  other-modules:
       Paths_biocad_task
   hs-source-dirs:
       src
