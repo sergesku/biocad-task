@@ -80,14 +80,20 @@ instance Eq ReactionData where
                   && (sort (rdProducts rd1) == sort (rdProducts rd2))
                   && (sort (rdCatalyst rd1) == sort (rdCatalyst rd2))
 
-instance RecordValue Reaction where exactEither = fmap fromNode . exactEither
-instance RecordValue Molecule where exactEither = fmap fromNode . exactEither
-instance RecordValue Catalyst where exactEither = fmap fromNode . exactEither
-instance RecordValue PathNode where exactEither = fmap fromNode . exactEither
+instance RecordValue Reaction where exactEither = recValFromNode
+instance RecordValue Molecule where exactEither = recValFromNode
+instance RecordValue Catalyst where exactEither = recValFromNode
+instance RecordValue PathNode where exactEither = recValFromNode
 
-instance RecordValue REAGENT_IN   where exactEither = fmap fromRelation . exactEither
-instance RecordValue PRODUCT_FROM where exactEither = fmap fromRelation . exactEither
-instance RecordValue ACCELERATE   where exactEither = fmap fromRelation . exactEither
+recValFromNode :: NodeLike a => Value -> Either UnpackError a
+recValFromNode = fmap fromNode . exactEither
+
+instance RecordValue REAGENT_IN   where exactEither = recValFromRel 
+instance RecordValue PRODUCT_FROM where exactEither = recValFromRel 
+instance RecordValue ACCELERATE   where exactEither = recValFromRel 
+
+recValFromRel :: URelationLike a => Value -> Either UnpackError a
+recValFromRel = fmap fromRelation . exactEither
 
 instance RecordValue a => RecordValue (Id a) where exactEither = fmap Id . exactEither
 
