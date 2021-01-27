@@ -52,14 +52,14 @@ putAccelerateRel ACCELERATE{..} idc idr = resp >>= unpackSingleId
 matchReactionNameNode :: Reaction -> BoltActionT IO [Id Reaction]
 matchReactionNameNode Reaction{..} = do
   resp <- queryP "MATCH (r:Reaction {name : {name}}) RETURN id(r) AS idr" $ props ["name" =: getName r'name]
-  forM resp $ \ rec -> Id <$> rec `at` "idr"
+  forM resp $ \ rec -> rec `at` "idr"
 
 
 getNode :: RecordValue a => Id a -> BoltActionT IO (Maybe a)
 getNode (Id i) = do 
   resp <- queryP "MATCH (n) WHERE ID(n) = {i} RETURN n AS node" $ props ["i" =: i]
   case resp of
-    [rec] -> Just <$> rec `at` "node"
+    [rec] -> rec `at` "node"
     _     -> pure Nothing
 
 

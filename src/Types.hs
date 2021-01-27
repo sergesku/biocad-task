@@ -89,6 +89,8 @@ instance RecordValue REAGENT_IN   where exactEither = fmap fromRelation . exactE
 instance RecordValue PRODUCT_FROM where exactEither = fmap fromRelation . exactEither
 instance RecordValue ACCELERATE   where exactEither = fmap fromRelation . exactEither
 
+instance RecordValue a => RecordValue (Id a) where exactEither = fmap Id . exactEither
+
 
 makeURelationLike ''REAGENT_IN
 makeURelationLikeWith ''ACCELERATE $ drop 2
